@@ -849,15 +849,12 @@ async function renderFournList(){
   try {
     const q = window._query(window._col('haccp_records'),
       window._where('type','==','fournisseur'),
-      window._where('date','==',TODAY),
-      window._orderBy('ts','desc'));
+      window._limit(50));
     const snap = await window._getDocs(q);
-    if(snap.empty){ el.innerHTML='<div class="empty-state">Aucun lot enregistré aujourd\'hui</div>'; return; }
-    el.innerHTML = snap.docs.map(d=>{
-      const r = d.data();
-      return `<div class="supp-row"><div class="supp-avatar">${(r.fourn||'?')[0]}</div><div><div style="font-size:13px;font-weight:600">${r.produit||'—'}</div><div style="font-size:11px;color:var(--text2)">${r.fourn} · Lot: ${r.lot||'N/A'} · DLC: ${r.dlc||'—'} · ${r.stockage}</div></div></div>`;
-    }).join('');
-  } catch(e){ el.innerHTML='<div class="empty-state">Chargement...</div>'; }
+    const recs = snap.docs.map(d=>d.data()).filter(r=>r.date===TODAY).sort((a,b)=>(b.time||'').localeCompare(a.time||''));
+    if(recs.length===0){ el.innerHTML='<div class="empty-state">Aucun lot enregistré aujourd\'hui</div>'; return; }
+    el.innerHTML = recs.map(r=>`<div class="supp-row"><div class="supp-avatar">${(r.fourn||'?')[0]}</div><div><div style="font-size:13px;font-weight:600">${r.produit||'—'}</div><div style="font-size:11px;color:var(--text2)">${r.fourn} · Lot: ${r.lot||'N/A'} · DLC: ${r.dlc||'—'} · ${r.stockage}</div></div></div>`).join('');
+  } catch(e){ el.innerHTML='<div class="empty-state">Erreur: '+e.message+'</div>'; }
 }
 
 // ── NC ──────────────────────────────────────────────────────────────────
@@ -891,15 +888,13 @@ async function renderNCList(){
   try {
     const q = window._query(window._col('haccp_records'),
       window._where('type','==','nc'),
-      window._orderBy('ts','desc'), window._limit(10));
+      window._limit(50));
     const snap = await window._getDocs(q);
-    if(snap.empty){ el.innerHTML='<div class="empty-state">Aucune NC enregistrée</div>'; return; }
+    const recs = snap.docs.map(d=>d.data()).sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time)).slice(0,10);
+    if(recs.length===0){ el.innerHTML='<div class="empty-state">Aucune NC enregistrée</div>'; return; }
     const gravMap = {'1':'🟡 Mineure','2':'🟠 Modérée','3':'🔴 Critique'};
-    el.innerHTML = snap.docs.map(d=>{
-      const r = d.data();
-      return `<div class="record-item"><div class="rec-title">${r.typeNC}</div><div class="rec-meta">${r.date} · ${r.time} · ${r.agent} · ${gravMap[r.grav]||''}</div></div><span class="status-pill ${r.statut==='closed'?'pill-ok':'pill-nc'}">${r.statut==='closed'?'Résolue':'En cours'}</span>`;
-    }).join('');
-  } catch(e){ el.innerHTML='<div class="empty-state">Erreur de chargement</div>'; }
+    el.innerHTML = recs.map(r=>`<div class="record-item"><div><div class="rec-title">${r.typeNC}</div><div class="rec-meta">${r.date} · ${r.time} · ${r.agent} · ${gravMap[r.grav]||''}</div></div><span class="status-pill ${r.statut==='closed'?'pill-ok':'pill-nc'}">${r.statut==='closed'?'Résolue':'En cours'}</span></div>`).join('');
+  } catch(e){ el.innerHTML='<div class="empty-state">Erreur: '+e.message+'</div>'; }
 }
 
 // ── HOME REFRESH ────────────────────────────────────────────────────────
@@ -912,9 +907,9 @@ async function refreshHome(){
   try {
     const q = window._query(window._col('haccp_records'),
       window._where('date','==',TODAY),
-      window._orderBy('ts','desc'), window._limit(20));
+      window._limit(50));
     const snap = await window._getDocs(q);
-    const recs = snap.docs.map(d => d.data());
+    const recs = snap.docs.map(d => d.data()).sort((a,b)=>(b.time||'').localeCompare(a.time||''));
 
     const ncCount = recs.filter(r => r.hasNC).length;
     const okCount = recs.filter(r => !r.hasNC).length;
@@ -937,7 +932,6 @@ async function refreshHome(){
       </div>`
     ).join('');
 
-    // Update tile metas
     modules.forEach(m => {
       const count = recs.filter(r=>r.type===m).length;
       const el = document.getElementById('ht-'+m.replace('fournisseur','fourn').replace('nettoyage','nett').replace('reception','recep'));
@@ -952,18 +946,15 @@ async function renderHistory(){
   if(!el) return;
   el.innerHTML = '<div class="empty-state">Chargement...</div>';
   try {
-    const q = window._query(window._col('haccp_records'),
-      window._orderBy('ts','desc'), window._limit(50));
+    const q = window._query(window._col('haccp_records'), window._limit(100));
     const snap = await window._getDocs(q);
     if(snap.empty){ el.innerHTML='<div class="empty-state">Aucun enregistrement</div>'; return; }
-    el.innerHTML = snap.docs.map(d=>{
-      const r = d.data();
-      return `<div class="record-item">
-        <div><div class="rec-title">${typeLabels[r.type]||r.type}</div>
-        <div class="rec-meta">${r.date} · ${r.time} · ${r.agent||r.signe||r.fourn||'—'}</div></div>
-        <span class="status-pill ${r.hasNC?'pill-nc':'pill-ok'}">${r.hasNC?'NC':'OK'}</span>
-      </div>`;
-    }).join('');
+    const recs = snap.docs.map(d=>d.data()).sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time)).slice(0,50);
+    el.innerHTML = recs.map(r=>`<div class="record-item">
+      <div><div class="rec-title">${typeLabels[r.type]||r.type}</div>
+      <div class="rec-meta">${r.date} · ${r.time} · ${r.agent||r.signe||r.fourn||'—'}</div></div>
+      <span class="status-pill ${r.hasNC?'pill-nc':'pill-ok'}">${r.hasNC?'NC':'OK'}</span>
+    </div>`).join('');
   } catch(e){ el.innerHTML='<div class="empty-state">Erreur : ' + e.message + '</div>'; }
 }
 </script>
