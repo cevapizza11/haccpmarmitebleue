@@ -896,13 +896,16 @@ function initApp(){
   refreshHome();
 }
 
-// Pré-remplir tous les champs prénom de l'appli
+// Pré-remplir tous les champs prénom de l'appli et les bloquer
 function fillPrenom(prenom){
   if(!prenom) return;
   const ids = ['t-agent','r-signe','n-signe','h-signe','f-signe','ncf-agent'];
   ids.forEach(id => {
     const el = document.getElementById(id);
-    if(el) el.value = prenom;
+    if(!el) return;
+    el.value = prenom;
+    el.readOnly = true;
+    el.style.cssText += ';background:#E6F1FB;color:#185FA5;font-weight:600;cursor:not-allowed;border-color:#B5D4F4';
   });
 }
 
