@@ -892,6 +892,13 @@ function initApp(){
   // Set heure friture
   const hh = document.getElementById('h-heure');
   if(hh) hh.value = NOW.getHours().toString().padStart(2,'0') + ':' + NOW.getMinutes().toString().padStart(2,'0');
+  // Pré-sélectionner la session selon l'heure
+  const h = NOW.getHours();
+  let session = 'Ouverture';
+  if(h >= 11 && h < 16) session = 'Midi';
+  else if(h >= 18 && h < 23) session = 'Fermeture';
+  const sel = document.getElementById('t-session');
+  if(sel) sel.value = session;
   setSyncState('ok');
   refreshHome();
 }
