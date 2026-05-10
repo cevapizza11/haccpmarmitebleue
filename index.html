@@ -180,6 +180,46 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .loading-txt{font-size:14px;color:var(--text2)}
 
 .empty-state{text-align:center;color:var(--text2);font-size:13px;padding:16px 0}
+
+/* HISTORIQUE FILTRES */
+.filter-bar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.filter-bar input[type=date]{flex:1;min-width:130px;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;background:var(--card);color:var(--text);font-family:inherit}
+.filter-bar select{flex:1;min-width:120px;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;background:var(--card);color:var(--text);font-family:inherit}
+.btn-pdf{display:flex;align-items:center;gap:6px;padding:9px 14px;background:var(--red);color:white;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap}
+.btn-pdf:active{opacity:.85}
+.btn-pdf svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2.2}
+.record-item{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s}
+.record-item:last-child{border:none}
+.record-item:active{background:#F8F8F6;margin:0 -14px;padding:10px 14px}
+.rec-chevron{width:16px;height:16px;stroke:var(--text2);fill:none;stroke-width:2;flex-shrink:0;margin-left:6px}
+
+/* MODAL DÉTAIL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:500;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal-sheet{background:var(--card);border-radius:18px 18px 0 0;width:100%;max-width:480px;max-height:85vh;overflow-y:auto;padding:0 0 calc(24px + var(--safe-bot));transform:translateY(30px);transition:transform .25s}
+.modal-overlay.open .modal-sheet{transform:translateY(0)}
+.modal-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:12px auto 16px}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:0 18px 14px;border-bottom:1px solid var(--border)}
+.modal-title{font-size:16px;font-weight:700}
+.modal-close{width:30px;height:30px;border-radius:50%;background:var(--bg);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;color:var(--text2)}
+.modal-body{padding:16px 18px}
+.detail-section{margin-bottom:16px}
+.detail-section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);margin-bottom:8px}
+.detail-row{display:flex;justify-content:space-between;align-items:flex-start;padding:6px 0;border-bottom:1px solid var(--border)}
+.detail-row:last-child{border:none}
+.detail-key{font-size:12px;color:var(--text2);flex:1}
+.detail-val{font-size:13px;font-weight:500;text-align:right;flex:1;max-width:60%}
+.detail-val.nc{color:var(--red)}
+.detail-val.ok{color:var(--teal)}
+.modal-pdf-btn{margin:0 18px;width:calc(100% - 36px);padding:12px;background:var(--blue);color:white;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}
+.modal-pdf-btn:active{opacity:.85}
+.modal-pdf-btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2.2}
+
+/* STATS HISTORIQUE */
+.hist-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.hist-stat{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 6px;text-align:center}
+.hist-stat-num{font-size:20px;font-weight:700}
+.hist-stat-lbl{font-size:10px;color:var(--text2);margin-top:2px}
 </style>
 </head>
 <body>
@@ -476,7 +516,40 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
     <!-- HISTORIQUE -->
     <div class="page" id="page-history">
-      <div class="section-label" style="margin-top:4px">Historique — 30 derniers jours</div>
+      <div class="section-label" style="margin-top:4px">Historique &amp; Export PDF</div>
+
+      <!-- Filtres -->
+      <div class="filter-bar">
+        <input type="date" id="hist-date-from" title="Du">
+        <input type="date" id="hist-date-to" title="Au">
+        <select id="hist-type">
+          <option value="">Tous les types</option>
+          <option value="temps">🌡 Températures</option>
+          <option value="reception">🚚 Réception</option>
+          <option value="nettoyage">🧹 Nettoyage</option>
+          <option value="huile">🔥 Huile friture</option>
+          <option value="fournisseur">📦 Traçabilité</option>
+          <option value="nc">⚠ Non-conformités</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:12px">
+        <button class="btn" style="flex:1;background:var(--blue);color:white;padding:9px" onclick="applyHistFilter()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          Filtrer
+        </button>
+        <button class="btn-pdf" onclick="exportPDF()">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+          Exporter PDF
+        </button>
+      </div>
+
+      <!-- Stats rapides -->
+      <div class="hist-stats" id="hist-stats" style="display:none">
+        <div class="hist-stat"><div class="hist-stat-num" id="hs-total">0</div><div class="hist-stat-lbl">Enregistrements</div></div>
+        <div class="hist-stat"><div class="hist-stat-num" id="hs-nc" style="color:var(--red)">0</div><div class="hist-stat-lbl">Non-conformités</div></div>
+        <div class="hist-stat"><div class="hist-stat-num" id="hs-days">0</div><div class="hist-stat-lbl">Jours couverts</div></div>
+      </div>
+
       <div class="card" id="history-list"><div class="empty-state">Chargement...</div></div>
     </div>
 
@@ -508,6 +581,22 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- MODAL DÉTAIL ENREGISTREMENT -->
+<div class="modal-overlay" id="detail-modal" onclick="closeModal(event)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title">Détail</div>
+      <button class="modal-close" onclick="closeDetailModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+    <button class="modal-pdf-btn" onclick="exportSinglePDF()">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+      Exporter cet enregistrement en PDF
+    </button>
+  </div>
+</div>
 
 <!-- FIREBASE SDK -->
 <script type="module">
@@ -941,22 +1030,266 @@ async function refreshHome(){
 }
 
 // ── HISTORIQUE ──────────────────────────────────────────────────────────
+let _allHistRecs = [];
+let _filteredRecs = [];
+let _currentRec = null;
+
 async function renderHistory(){
   const el = document.getElementById('history-list');
   if(!el) return;
   el.innerHTML = '<div class="empty-state">Chargement...</div>';
+  // Dates par défaut : 30 derniers jours
+  const today = new Date();
+  const d30 = new Date(); d30.setDate(d30.getDate()-30);
+  const df = document.getElementById('hist-date-from');
+  const dt = document.getElementById('hist-date-to');
+  if(!df.value) df.value = d30.toISOString().split('T')[0];
+  if(!dt.value) dt.value = today.toISOString().split('T')[0];
   try {
-    const q = window._query(window._col('haccp_records'), window._limit(100));
+    const q = window._query(window._col('haccp_records'), window._limit(500));
     const snap = await window._getDocs(q);
-    if(snap.empty){ el.innerHTML='<div class="empty-state">Aucun enregistrement</div>'; return; }
-    const recs = snap.docs.map(d=>d.data()).sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time)).slice(0,50);
-    el.innerHTML = recs.map(r=>`<div class="record-item">
-      <div><div class="rec-title">${typeLabels[r.type]||r.type}</div>
-      <div class="rec-meta">${r.date} · ${r.time} · ${r.agent||r.signe||r.fourn||'—'}</div></div>
-      <span class="status-pill ${r.hasNC?'pill-nc':'pill-ok'}">${r.hasNC?'NC':'OK'}</span>
-    </div>`).join('');
+    _allHistRecs = snap.docs.map(d=>d.data()).sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));
+    applyHistFilter();
   } catch(e){ el.innerHTML='<div class="empty-state">Erreur : ' + e.message + '</div>'; }
 }
+
+function applyHistFilter(){
+  const from = document.getElementById('hist-date-from').value;
+  const to = document.getElementById('hist-date-to').value;
+  const type = document.getElementById('hist-type').value;
+  _filteredRecs = _allHistRecs.filter(r => {
+    if(from && r.date < from) return false;
+    if(to && r.date > to) return false;
+    if(type && r.type !== type) return false;
+    return true;
+  });
+  renderHistList(_filteredRecs);
+}
+window.applyHistFilter = applyHistFilter;
+
+function renderHistList(recs){
+  const el = document.getElementById('history-list');
+  const stats = document.getElementById('hist-stats');
+  if(!el) return;
+  if(recs.length===0){ el.innerHTML='<div class="empty-state">Aucun enregistrement pour cette période</div>'; stats.style.display='none'; return; }
+  // Stats
+  stats.style.display='grid';
+  document.getElementById('hs-total').textContent = recs.length;
+  document.getElementById('hs-nc').textContent = recs.filter(r=>r.hasNC).length;
+  document.getElementById('hs-days').textContent = new Set(recs.map(r=>r.date)).size;
+  // Liste
+  el.innerHTML = recs.map((r,i)=>`
+    <div class="record-item" onclick="openDetail(${i})">
+      <div>
+        <div class="rec-title">${typeLabels[r.type]||r.type}</div>
+        <div class="rec-meta">${r.date} · ${r.time} · ${r.agent||r.signe||r.fourn||'—'}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <span class="status-pill ${r.hasNC?'pill-nc':'pill-ok'}">${r.hasNC?'NC':'OK'}</span>
+        <svg class="rec-chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+    </div>`).join('');
+}
+window.renderHistList = renderHistList;
+
+// ── MODAL DÉTAIL ────────────────────────────────────────────────────────
+const typeLabelsLong = {
+  temps:'Relevé de températures', reception:'Réception marchandises',
+  nettoyage:'Nettoyage / Désinfection', huile:'Contrôle huile de friture',
+  fournisseur:'Traçabilité fournisseur', nc:'Non-conformité'
+};
+
+function buildDetailRows(r){
+  const rows = [];
+  const add = (k,v,cls='') => v && rows.push({k,v,cls});
+  add('Date', r.date);
+  add('Heure', r.time);
+  if(r.type==='temps'){
+    add('Session', r.session);
+    add('Responsable', r.agent);
+    if(r.frigo1) add('Frigo 1', r.frigo1+'°C', parseFloat(r.frigo1)>4||parseFloat(r.frigo1)<-2?'nc':'ok');
+    if(r.frigo2) add('Frigo 2', r.frigo2+'°C', parseFloat(r.frigo2)>4||parseFloat(r.frigo2)<-2?'nc':'ok');
+    if(r.marinade) add('Bac marinade', r.marinade+'°C', parseFloat(r.marinade)>4||parseFloat(r.marinade)<-2?'nc':'ok');
+    if(r.legumes) add('Légumes', r.legumes+'°C', parseFloat(r.legumes)>6||parseFloat(r.legumes)<0?'nc':'ok');
+    if(r.cong1) add('Congélateur 1', r.cong1+'°C', parseFloat(r.cong1)>-15?'nc':'ok');
+    if(r.cong2) add('Congélateur 2', r.cong2+'°C', parseFloat(r.cong2)>-15?'nc':'ok');
+    if(r.obs) add('Observations', r.obs);
+  } else if(r.type==='reception'){
+    add('Fournisseur', r.fourn);
+    add('N° BL', r.bl);
+    add('Temp. livraison', r.temp ? r.temp+'°C' : '—', parseFloat(r.temp)>4?'nc':'ok');
+    add('Points contrôle', r.checks);
+    if(r.obs) add('Observations', r.obs);
+    add('Signé par', r.signe);
+  } else if(r.type==='nettoyage'){
+    add('Zone', r.zone);
+    add('Type', r.typeN);
+    add('Produit(s)', r.produit||'Non renseigné');
+    add('Étapes réalisées', r.checks);
+    add('Signé par', r.signe);
+  } else if(r.type==='huile'){
+    add('Friteuse', r.friteuse);
+    add('Heure mesure', r.heure);
+    add('TPM (%)', r.tpm+'%', r.tpm>=25?'nc':'ok');
+    add('Temp. huile', r.temp ? r.temp+'°C' : '—');
+    add('Couleur', r.couleur);
+    add('Action effectuée', r.action);
+    add('Signé par', r.signe);
+  } else if(r.type==='fournisseur'){
+    add('Fournisseur', r.fourn);
+    add('Produit', r.produit);
+    add('N° de lot', r.lot);
+    add('DLC / DDM', r.dlc);
+    add('Quantité', r.qte);
+    add('Stockage', r.stockage);
+    add('Signé par', r.signe);
+  } else if(r.type==='nc'){
+    add('Type NC', r.typeNC);
+    add('Description', r.desc);
+    add('Gravité', {'1':'🟡 Mineure','2':'🟠 Modérée','3':'🔴 Critique'}[r.grav]||r.grav);
+    add('Signalé par', r.agent);
+    add('Action corrective', r.action);
+    add('Statut', r.statut==='closed'?'✅ Résolue':'🔄 En cours', r.statut==='closed'?'ok':'nc');
+  }
+  return rows;
+}
+
+function openDetail(idx){
+  _currentRec = _filteredRecs[idx];
+  const r = _currentRec;
+  document.getElementById('modal-title').textContent = typeLabelsLong[r.type]||r.type;
+  const rows = buildDetailRows(r);
+  document.getElementById('modal-body').innerHTML = `
+    <div class="detail-section">
+      <div class="detail-section-title">Informations</div>
+      ${rows.map(row=>`<div class="detail-row"><span class="detail-key">${row.k}</span><span class="detail-val ${row.cls||''}">${row.v}</span></div>`).join('')}
+    </div>
+    <div style="margin-top:8px">
+      <span class="status-pill ${r.hasNC?'pill-nc':'pill-ok'}" style="font-size:13px;padding:5px 12px">${r.hasNC?'⚠ Non-conforme':'✓ Conforme'}</span>
+    </div>`;
+  document.getElementById('detail-modal').classList.add('open');
+}
+window.openDetail = openDetail;
+
+function closeDetailModal(){
+  document.getElementById('detail-modal').classList.remove('open');
+}
+window.closeDetailModal = closeDetailModal;
+
+function closeModal(e){
+  if(e.target===document.getElementById('detail-modal')) closeDetailModal();
+}
+window.closeModal = closeModal;
+
+// ── EXPORT PDF ──────────────────────────────────────────────────────────
+function buildPDFContent(recs, titre, periode){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+  const W = 210, M = 15;
+  let y = 15;
+
+  // En-tête
+  doc.setFillColor(24,95,165);
+  doc.rect(0,0,W,28,'F');
+  doc.setTextColor(255,255,255);
+  doc.setFontSize(16); doc.setFont('helvetica','bold');
+  doc.text('HACCP — La Marmite Bleue', M, 11);
+  doc.setFontSize(9); doc.setFont('helvetica','normal');
+  doc.text('Saint-Pierre-la-Mer · Fleury, Aude · 1 Boulevard de la Douane', M, 17);
+  doc.text('Exporté le : ' + new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'}), M, 22);
+  y = 35;
+
+  // Titre du rapport
+  doc.setTextColor(0,0,0);
+  doc.setFontSize(13); doc.setFont('helvetica','bold');
+  doc.text(titre, M, y); y+=6;
+  doc.setFontSize(9); doc.setFont('helvetica','normal');
+  doc.setTextColor(100,100,100);
+  doc.text('Période : ' + periode + '  |  ' + recs.length + ' enregistrement(s)', M, y); y+=4;
+  doc.setDrawColor(220,220,210); doc.line(M, y, W-M, y); y+=6;
+
+  const typeLabPDF = {temps:'Températures',reception:'Réception',nettoyage:'Nettoyage',huile:'Huile friture',fournisseur:'Traçabilité',nc:'Non-conformité'};
+
+  recs.forEach((r, idx) => {
+    if(y > 265){ doc.addPage(); y = 15; }
+    // Bloc titre enregistrement
+    const ncColor = r.hasNC ? [163,45,45] : [15,110,86];
+    doc.setFillColor(245,245,243);
+    doc.rect(M, y-4, W-M*2, 8, 'F');
+    doc.setFontSize(10); doc.setFont('helvetica','bold');
+    doc.setTextColor(0,0,0);
+    doc.text((idx+1)+'. '+typeLabPDF[r.type], M+2, y+0.5);
+    doc.setFontSize(8); doc.setFont('helvetica','normal');
+    doc.setTextColor(ncColor[0],ncColor[1],ncColor[2]);
+    doc.text(r.hasNC?'NON CONFORME':'CONFORME', W-M-2, y+0.5, {align:'right'});
+    y += 9;
+
+    const rows = buildDetailRows(r);
+    rows.forEach(row => {
+      if(y > 270){ doc.addPage(); y=15; }
+      doc.setTextColor(100,100,100); doc.setFontSize(8); doc.setFont('helvetica','normal');
+      doc.text(row.k+' :', M+3, y);
+      doc.setTextColor(0,0,0); doc.setFont('helvetica','bold');
+      const val = String(row.v||'—');
+      const lines = doc.splitTextToSize(val, 90);
+      doc.text(lines, 90, y);
+      y += lines.length * 4.5 + 0.5;
+    });
+    doc.setDrawColor(220,220,210); doc.line(M, y, W-M, y); y+=5;
+  });
+
+  // Pied de page
+  const pageCount = doc.getNumberOfPages();
+  for(let i=1;i<=pageCount;i++){
+    doc.setPage(i);
+    doc.setFontSize(8); doc.setTextColor(150,150,150); doc.setFont('helvetica','normal');
+    doc.text('La Marmite Bleue — Document HACCP — Page '+i+'/'+pageCount, W/2, 292, {align:'center'});
+    doc.text('Document généré automatiquement — Conserver 3 ans', W/2, 296, {align:'center'});
+  }
+  return doc;
+}
+
+async function loadJsPDF(){
+  if(window.jspdf) return true;
+  return new Promise(resolve=>{
+    const s = document.createElement('script');
+    s.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+    s.onload=()=>resolve(true); s.onerror=()=>resolve(false);
+    document.head.appendChild(s);
+  });
+}
+
+async function exportPDF(){
+  if(_filteredRecs.length===0){ showToast('Aucun enregistrement à exporter'); return; }
+  showToast('⏳ Génération du PDF...');
+  const ok = await loadJsPDF();
+  if(!ok){ showToast('Erreur chargement PDF'); return; }
+  const from = document.getElementById('hist-date-from').value;
+  const to = document.getElementById('hist-date-to').value;
+  const type = document.getElementById('hist-type').value;
+  const typeStr = type ? typeLabels[type] : 'Tous modules';
+  const titre = 'Registre HACCP — ' + typeStr;
+  const periode = (from||'—') + ' → ' + (to||'—');
+  const doc = buildPDFContent(_filteredRecs, titre, periode);
+  doc.save('HACCP_MarmiteBleue_' + (from||'') + '_' + (to||'') + '.pdf');
+  showToast('✓ PDF exporté !');
+}
+window.exportPDF = exportPDF;
+
+async function exportSinglePDF(){
+  if(!_currentRec){ showToast('Aucun enregistrement sélectionné'); return; }
+  showToast('⏳ Génération du PDF...');
+  const ok = await loadJsPDF();
+  if(!ok){ showToast('Erreur chargement PDF'); return; }
+  const r = _currentRec;
+  const titre = typeLabelsLong[r.type]||r.type;
+  const doc = buildPDFContent([r], titre, r.date + ' · ' + r.time);
+  doc.save('HACCP_' + r.type + '_' + r.date + '_' + r.time.replace(':','h') + '.pdf');
+  closeDetailModal();
+  showToast('✓ PDF exporté !');
+}
+window.exportSinglePDF = exportSinglePDF;
+
 </script>
 </body>
 </html>
