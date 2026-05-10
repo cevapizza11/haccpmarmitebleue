@@ -237,6 +237,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .hist-stat{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 6px;text-align:center}
 .hist-stat-num{font-size:20px;font-weight:700}
 .hist-stat-lbl{font-size:10px;color:var(--text2);margin-top:2px}
+.login-switch{font-size:13px;color:var(--text2);text-align:center;margin-top:14px}
+.login-switch span{color:var(--blue);cursor:pointer;font-weight:600;text-decoration:underline}
+.topbar-user{font-size:12px;font-weight:600;color:var(--blue);background:#E6F1FB;padding:3px 9px;border-radius:20px;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 </style>
 </head>
 <body>
@@ -247,12 +250,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <div class="loading-txt">Chargement...</div>
 </div>
 
-<!-- LOGIN -->
+<!-- LOGIN / INSCRIPTION -->
 <div id="login-screen">
   <div class="login-logo">🐚</div>
   <div class="login-title">HACCP — La Marmite Bleue</div>
   <div class="login-sub">Saint-Pierre-la-Mer · Fleury, Aude</div>
-  <div class="login-card">
+
+  <!-- Panneau connexion -->
+  <div class="login-card" id="panel-login">
     <div class="field-group">
       <label>Adresse e-mail</label>
       <input type="email" id="l-email" placeholder="nom@exemple.fr" autocomplete="email">
@@ -263,6 +268,31 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     </div>
     <button class="btn-login" id="btn-login" onclick="doLogin()">Se connecter</button>
     <div class="login-err" id="login-err"></div>
+    <div class="login-switch">Pas encore de compte ? <span onclick="showRegister()">S'inscrire</span></div>
+  </div>
+
+  <!-- Panneau inscription -->
+  <div class="login-card" id="panel-register" style="display:none">
+    <div style="font-size:15px;font-weight:700;margin-bottom:16px;color:var(--text)">Créer un compte employé</div>
+    <div class="field-group">
+      <label>Prénom</label>
+      <input type="text" id="r-prenom" placeholder="Ton prénom (affiché sur les rapports)" autocomplete="given-name">
+    </div>
+    <div class="field-group">
+      <label>Adresse e-mail</label>
+      <input type="email" id="r-email" placeholder="nom@exemple.fr" autocomplete="email">
+    </div>
+    <div class="field-group">
+      <label>Mot de passe</label>
+      <input type="password" id="r-pwd" placeholder="Minimum 6 caractères" autocomplete="new-password">
+    </div>
+    <div class="field-group">
+      <label>Confirmer le mot de passe</label>
+      <input type="password" id="r-pwd2" placeholder="Répéter le mot de passe" autocomplete="new-password">
+    </div>
+    <button class="btn-login" id="btn-register" onclick="doRegister()">Créer mon compte</button>
+    <div class="login-err" id="register-err"></div>
+    <div class="login-switch">Déjà un compte ? <span onclick="showLogin()">Se connecter</span></div>
   </div>
 </div>
 
@@ -279,7 +309,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="topbar-right">
       <div class="sync-dot" id="sync-dot"></div>
       <span class="sync-label" id="sync-label">Sync</span>
-      <button class="btn-logout" onclick="doLogout()">⏏ Sortir</button>
+      <div class="topbar-user" id="topbar-user">—</div>
+      <button class="btn-logout" onclick="doLogout()">⏏</button>
     </div>
   </div>
 
@@ -682,10 +713,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <!-- FIREBASE SDK -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged }
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getFirestore, collection, addDoc, query, where, orderBy, limit,
-  getDocs, serverTimestamp, enableIndexedDbPersistence }
+  getDocs, getDoc, setDoc, doc, serverTimestamp, enableIndexedDbPersistence }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -701,14 +732,15 @@ const firebaseApp = initializeApp(firebaseConfig);
 const auth = getAuth(firebaseApp);
 const db = getFirestore(firebaseApp);
 
-// Offline persistence
 try { await enableIndexedDbPersistence(db); } catch(e) {}
 
-// Expose to window for non-module functions
 window._auth = auth;
 window._db = db;
 window._col = (name) => collection(db, name);
+window._doc = (col, id) => doc(db, col, id);
 window._addDoc = addDoc;
+window._setDoc = setDoc;
+window._getDoc = getDoc;
 window._serverTS = serverTimestamp;
 window._query = query;
 window._where = where;
@@ -717,23 +749,29 @@ window._limit = limit;
 window._getDocs = getDocs;
 window._signOut = signOut;
 window._signIn = (e,p) => signInWithEmailAndPassword(auth, e, p);
+window._signUp = (e,p) => createUserWithEmailAndPassword(auth, e, p);
 
-// Auth state
-onAuthStateChanged(auth, user => {
+onAuthStateChanged(auth, async user => {
   document.getElementById('loading').style.display = 'none';
   if(user){
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('app-screen').style.display = 'flex';
     window._uid = user.uid;
     window._userEmail = user.email;
+    // Charger le profil (prénom) depuis Firestore
+    try {
+      const snap = await getDoc(doc(db, 'users', user.uid));
+      window._prenom = snap.exists() ? (snap.data().prenom || '') : '';
+    } catch(e){ window._prenom = ''; }
     initApp();
   } else {
     document.getElementById('login-screen').style.display = 'flex';
     document.getElementById('app-screen').style.display = 'none';
+    window._uid = null;
+    window._prenom = '';
   }
 });
 
-// Sync indicator
 window.addEventListener('online', () => setSyncState('ok'));
 window.addEventListener('offline', () => setSyncState('offline'));
 </script>
@@ -768,7 +806,20 @@ function setBtn(id, loading){
   else { b.classList.remove('btn-loading'); b.disabled=false; }
 }
 
-// ── LOGIN ──────────────────────────────────────────────────────────────
+// ── LOGIN / INSCRIPTION ────────────────────────────────────────────────
+function showRegister(){
+  document.getElementById('panel-login').style.display='none';
+  document.getElementById('panel-register').style.display='block';
+  document.getElementById('register-err').textContent='';
+}
+function showLogin(){
+  document.getElementById('panel-register').style.display='none';
+  document.getElementById('panel-login').style.display='block';
+  document.getElementById('login-err').textContent='';
+}
+window.showRegister = showRegister;
+window.showLogin = showLogin;
+
 async function doLogin(){
   const email = document.getElementById('l-email').value.trim();
   const pwd = document.getElementById('l-pwd').value;
@@ -786,7 +837,45 @@ async function doLogin(){
 }
 window.doLogin = doLogin;
 
-document.addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+async function doRegister(){
+  const prenom = document.getElementById('r-prenom').value.trim();
+  const email = document.getElementById('r-email').value.trim();
+  const pwd = document.getElementById('r-pwd').value;
+  const pwd2 = document.getElementById('r-pwd2').value;
+  const btn = document.getElementById('btn-register');
+  const err = document.getElementById('register-err');
+  err.textContent = '';
+  if(!prenom){ err.textContent='Ton prénom est obligatoire.'; return; }
+  if(!email){ err.textContent='L\'email est obligatoire.'; return; }
+  if(pwd.length < 6){ err.textContent='Le mot de passe doit faire au moins 6 caractères.'; return; }
+  if(pwd !== pwd2){ err.textContent='Les mots de passe ne correspondent pas.'; return; }
+  btn.disabled = true; btn.textContent = 'Création...';
+  try {
+    const cred = await window._signUp(email, pwd);
+    // Sauvegarder le prénom dans Firestore collection "users"
+    await window._setDoc(window._doc('users', cred.user.uid), {
+      prenom, email, createdAt: window._serverTS()
+    });
+    // onAuthStateChanged va prendre le relais automatiquement
+  } catch(e){
+    const msgs = {
+      'auth/email-already-in-use': 'Cet email est déjà utilisé.',
+      'auth/invalid-email': 'Email invalide.',
+      'auth/weak-password': 'Mot de passe trop faible (6 caractères min).'
+    };
+    err.textContent = msgs[e.code] || 'Erreur : ' + e.message;
+    btn.disabled = false; btn.textContent = 'Créer mon compte';
+  }
+}
+window.doRegister = doRegister;
+
+document.addEventListener('keydown', e => {
+  if(e.key==='Enter'){
+    const reg = document.getElementById('panel-register');
+    if(reg && reg.style.display!=='none') doRegister();
+    else doLogin();
+  }
+});
 
 async function doLogout(){ await window._signOut(window._auth); }
 window.doLogout = doLogout;
@@ -795,11 +884,26 @@ window.doLogout = doLogout;
 function initApp(){
   document.getElementById('topbar-date').textContent = fmtDate(NOW);
   document.getElementById('t-date-sub').textContent = fmtDate(NOW);
+  // Afficher le prénom dans la topbar
+  const prenom = window._prenom || '';
+  if(prenom) document.getElementById('topbar-user').textContent = prenom;
+  // Pré-remplir tous les champs "agent/signé par" avec le prénom
+  fillPrenom(prenom);
   // Set heure friture
   const hh = document.getElementById('h-heure');
   if(hh) hh.value = NOW.getHours().toString().padStart(2,'0') + ':' + NOW.getMinutes().toString().padStart(2,'0');
   setSyncState('ok');
   refreshHome();
+}
+
+// Pré-remplir tous les champs prénom de l'appli
+function fillPrenom(prenom){
+  if(!prenom) return;
+  const ids = ['t-agent','r-signe','n-signe','h-signe','f-signe','ncf-agent'];
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.value = prenom;
+  });
 }
 
 // ── NAVIGATION ──────────────────────────────────────────────────────────
@@ -809,6 +913,8 @@ function goTo(page){
   document.getElementById('page-'+page).classList.add('active');
   const nb = document.getElementById('nav-'+page);
   if(nb) nb.classList.add('active');
+  // Re-pré-remplir le prénom à chaque navigation
+  fillPrenom(window._prenom || '');
   if(page==='home') refreshHome();
   if(page==='history') renderHistory();
   if(page==='fournisseurs') renderFournList();
