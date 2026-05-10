@@ -181,6 +181,23 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 .empty-state{text-align:center;color:var(--text2);font-size:13px;padding:16px 0}
 
+/* DOCS PAGE */
+.doc-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:10px;display:flex;align-items:flex-start;gap:14px;cursor:pointer;transition:border-color .15s}
+.doc-card:active{border-color:var(--blue);transform:scale(.98)}
+.doc-card-icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.doc-card-icon svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8}
+.doc-card-body{flex:1}
+.doc-card-title{font-size:14px;font-weight:600;margin-bottom:3px}
+.doc-card-sub{font-size:12px;color:var(--text2);line-height:1.5}
+.doc-card-badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;margin-top:6px}
+.info-block{background:#E6F1FB;border-left:3px solid var(--blue);border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:10px 14px;margin-bottom:10px}
+.info-block p{font-size:12px;color:#0C447C;line-height:1.6}
+.ccp-item{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:8px}
+.ccp-num{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;font-size:11px;font-weight:700;margin-right:8px;flex-shrink:0}
+.ccp-ok{background:var(--teal-light);color:var(--teal)}
+.ccp-warn{background:var(--amber-light);color:var(--amber)}
+.ccp-red{background:var(--red-light);color:var(--red)}
+
 /* HISTORIQUE FILTRES */
 .filter-bar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
 .filter-bar input[type=date]{flex:1;min-width:130px;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;background:var(--card);color:var(--text);font-family:inherit}
@@ -553,6 +570,66 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <div class="card" id="history-list"><div class="empty-state">Chargement...</div></div>
     </div>
 
+    <!-- DOCUMENTS HACCP -->
+    <div class="page" id="page-docs">
+      <div class="section-label" style="margin-top:4px">Documents officiels HACCP</div>
+      <div class="info-block">
+        <p>Ces documents constituent votre Plan de Maîtrise Sanitaire (PMS). Conservez-les 3 ans minimum. Présentez-les lors de tout contrôle DDPP.</p>
+      </div>
+      <div class="doc-card" onclick="downloadHACCPDoc()">
+        <div class="doc-card-icon icon-blue"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg></div>
+        <div class="doc-card-body">
+          <div class="doc-card-title">Plan HACCP complet — La Marmite Bleue</div>
+          <div class="doc-card-sub">Document Word (.docx) · 12 chapitres · Analyse des dangers, CCP, procédures, allergènes, traçabilité</div>
+          <div class="doc-card-badge" style="background:#E6F1FB;color:#185FA5">⬇ Télécharger .docx</div>
+        </div>
+      </div>
+      <div class="section-label">Points Critiques (CCP) — Aide-mémoire</div>
+      <div class="ccp-item">
+        <div style="display:flex;align-items:flex-start">
+          <span class="ccp-num ccp-red">CCP1</span>
+          <div><div style="font-size:13px;font-weight:600">Cuisson moules vapeur</div><div style="font-size:12px;color:var(--text2);margin-top:2px">T° cœur ≥ 90°C · ≥ 8 min · Coquilles ouvertes</div><div style="font-size:12px;color:var(--red);margin-top:2px">NC → prolonger cuisson ou écarter lot</div></div>
+        </div>
+      </div>
+      <div class="ccp-item">
+        <div style="display:flex;align-items:flex-start">
+          <span class="ccp-num ccp-red">CCP2</span>
+          <div><div style="font-size:13px;font-weight:600">Service moules — maintien chaud</div><div style="font-size:12px;color:var(--text2);margin-top:2px">Service ≤ 10 min post-cuisson · T° ≥ 63°C</div><div style="font-size:12px;color:var(--red);margin-top:2px">NC → remettre en cuisson ou écarter</div></div>
+        </div>
+      </div>
+      <div class="ccp-item">
+        <div style="display:flex;align-items:flex-start">
+          <span class="ccp-num ccp-warn">CCP3</span>
+          <div><div style="font-size:13px;font-weight:600">Huile friture — TPM</div><div style="font-size:12px;color:var(--text2);margin-top:2px">TPM &lt; 25% obligatoire (Arrêté 15/03/2018)</div><div style="font-size:12px;color:var(--amber);margin-top:2px">NC → filtrage si 18-24% · Vidange si ≥ 25%</div></div>
+        </div>
+      </div>
+      <div class="ccp-item">
+        <div style="display:flex;align-items:flex-start">
+          <span class="ccp-num ccp-warn">CCP4</span>
+          <div><div style="font-size:13px;font-weight:600">Allergènes — Friteuse F4 dédiée</div><div style="font-size:12px;color:var(--text2);margin-top:2px">F4 = usage exclusif · Zéro contamination croisée</div><div style="font-size:12px;color:var(--amber);margin-top:2px">NC → nettoyage complet + changement huile + NC app</div></div>
+        </div>
+      </div>
+      <div class="section-label">Températures cibles</div>
+      <div class="card">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div style="background:var(--bg);border-radius:8px;padding:10px;text-align:center"><div style="font-size:10px;color:var(--text2);margin-bottom:4px">Frigos 1 &amp; 2</div><div style="font-size:18px;font-weight:700;color:var(--blue)">-2 → +4°C</div></div>
+          <div style="background:var(--bg);border-radius:8px;padding:10px;text-align:center"><div style="font-size:10px;color:var(--text2);margin-bottom:4px">Bac légumes</div><div style="font-size:18px;font-weight:700;color:var(--blue)">0 → +6°C</div></div>
+          <div style="background:var(--bg);border-radius:8px;padding:10px;text-align:center"><div style="font-size:10px;color:var(--text2);margin-bottom:4px">Congélateurs</div><div style="font-size:18px;font-weight:700;color:var(--teal)">-25 → -15°C</div></div>
+          <div style="background:var(--bg);border-radius:8px;padding:10px;text-align:center"><div style="font-size:10px;color:var(--text2);margin-bottom:4px">Service moules</div><div style="font-size:18px;font-weight:700;color:var(--teal)">≥ 63°C</div></div>
+          <div style="background:var(--bg);border-radius:8px;padding:10px;text-align:center"><div style="font-size:10px;color:var(--text2);margin-bottom:4px">Huile friture</div><div style="font-size:18px;font-weight:700;color:var(--amber)">170→180°C</div></div>
+          <div style="background:#FCEBEB;border-radius:8px;padding:10px;text-align:center"><div style="font-size:10px;color:var(--text2);margin-bottom:4px">TPM max légal</div><div style="font-size:18px;font-weight:700;color:var(--red)">25% TPM</div></div>
+        </div>
+      </div>
+      <div class="section-label">Suivi administratif</div>
+      <div class="card">
+        <div class="record-item"><div><div class="rec-title">Formation hygiène 14h</div><div class="rec-meta">Thomas — Validée</div></div><span class="status-pill pill-ok">✓ OK</span></div>
+        <div class="record-item"><div><div class="rec-title">Déclaration DDPP Aude</div><div class="rec-meta">Prévue février 2027</div></div><span class="status-pill pill-warn">Prévu</span></div>
+        <div class="record-item"><div><div class="rec-title">Grande Licence Restaurant (IV)</div><div class="rec-meta">Mairie de Fleury</div></div><span class="status-pill pill-warn">À faire</span></div>
+        <div class="record-item"><div><div class="rec-title">Licence III</div><div class="rec-meta">Quota Fleury à vérifier</div></div><span class="status-pill pill-warn">À vérifier</span></div>
+        <div class="record-item" style="border:none"><div><div class="rec-title">Contrat antiparasitaire</div><div class="rec-meta">Dératisation / désinsectisation</div></div><span class="status-pill pill-nc">À contractualiser</span></div>
+      </div>
+    </div>
+
   </div>
 
   <!-- NAV -->
@@ -572,6 +649,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <button class="nav-btn" id="nav-nc" onclick="goTo('nc')">
       <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
       <span class="nav-label">NC</span>
+    </button>
+    <button class="nav-btn" id="nav-docs" onclick="goTo('docs')">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      <span class="nav-label">HACCP</span>
     </button>
     <button class="nav-btn" id="nav-history" onclick="goTo('history')">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
@@ -1029,7 +1110,18 @@ async function refreshHome(){
   } catch(e){ console.log('refresh error', e); }
 }
 
-// ── HISTORIQUE ──────────────────────────────────────────────────────────
+// ── TÉLÉCHARGEMENT DOCUMENT HACCP ───────────────────────────────────────
+function downloadHACCPDoc(){
+  // Lien vers le fichier .docx hébergé sur GitHub Pages (à mettre à jour après déploiement)
+  // En attendant, ouvre un lien de téléchargement direct
+  const DOCX_URL = 'Plan_HACCP_LaMarmiteBleue.docx';
+  const a = document.createElement('a');
+  a.href = DOCX_URL;
+  a.download = 'Plan_HACCP_LaMarmiteBleue.docx';
+  a.click();
+  showToast('⬇ Téléchargement du plan HACCP...');
+}
+window.downloadHACCPDoc = downloadHACCPDoc;
 let _allHistRecs = [];
 let _filteredRecs = [];
 let _currentRec = null;
