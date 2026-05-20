@@ -210,9 +210,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 /* ADMIN BADGE */
 .admin-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;padding:3px 8px;border-radius:20px;background:#FFF3CD;color:#854F0B}
 .admin-only{display:none}
-body.is-admin .admin-only{display:block}
-body.is-admin .admin-only-flex{display:flex}
+body.is-admin .admin-only{display:flex}
+body.is-admin .admin-only-block{display:block}
 .admin-only-flex{display:none}
+body.is-admin .admin-only-flex{display:flex}
 
 /* ALERTES RELEVÉS */
 .alert-banner{background:var(--red-light);border:1px solid var(--red);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:10px;display:flex;align-items:flex-start;gap:10px}
@@ -1104,12 +1105,15 @@ function resetChecks(prefix){
 }
 
 // ── ADMIN / RÔLES ───────────────────────────────────────────────────────
-const ADMIN_EMAIL = 'thomas'; // on vérifie que l'email contient "thomas"
-// Pour être plus précis, mets ici ton email exact : 'thomas@lamarmitebleue.fr'
+// ─── IMPORTANT : remplace par ton email Firebase exact si ça ne fonctionne pas ───
+const ADMIN_EMAIL = 'thomas'; // cherche si l'email contient ce mot
 
 function isAdmin() {
   const email = (window._userEmail || '').toLowerCase();
-  return email.includes('thomas'); // adapte avec ton vrai email si besoin
+  const match = email.includes(ADMIN_EMAIL);
+  // Debug : affiche dans la console pour vérifier
+  console.log('[ADMIN CHECK] email:', email, '→ isAdmin:', match);
+  return match;
 }
 
 function isManager() {
@@ -2043,67 +2047,128 @@ window.closeModal = closeModal;
 // ── EXPORT PDF ──────────────────────────────────────────────────────────
 function buildPDFContent(recs, titre, periode){
   const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
-  const W = 210, M = 15;
-  let y = 15;
+  const doc = new jsPDF({ orientation:'landscape', unit:'mm', format:'a4' });
+  const W=297, H=210, M=10;
+  const typeLabPDF={temps:'Températures',reception:'Réception',nettoyage:'Nettoyage',huile:'Huile friture',fournisseur:'Traçabilité',nc:'Non-conformité'};
 
-  // En-tête
-  doc.setFillColor(24,95,165);
-  doc.rect(0,0,W,28,'F');
-  doc.setTextColor(255,255,255);
-  doc.setFontSize(16); doc.setFont('helvetica','bold');
-  doc.text('HACCP — La Marmite Bleue', M, 11);
-  doc.setFontSize(9); doc.setFont('helvetica','normal');
-  doc.text('Saint-Pierre-la-Mer · Fleury, Aude · 1 Boulevard de la Douane', M, 17);
-  doc.text('Exporté le : ' + new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'}), M, 22);
-  y = 35;
-
-  // Titre du rapport
-  doc.setTextColor(0,0,0);
-  doc.setFontSize(13); doc.setFont('helvetica','bold');
-  doc.text(titre, M, y); y+=6;
-  doc.setFontSize(9); doc.setFont('helvetica','normal');
-  doc.setTextColor(100,100,100);
-  doc.text('Période : ' + periode + '  |  ' + recs.length + ' enregistrement(s)', M, y); y+=4;
-  doc.setDrawColor(220,220,210); doc.line(M, y, W-M, y); y+=6;
-
-  const typeLabPDF = {temps:'Températures',reception:'Réception',nettoyage:'Nettoyage',huile:'Huile friture',fournisseur:'Traçabilité',nc:'Non-conformité'};
-
-  recs.forEach((r, idx) => {
-    if(y > 265){ doc.addPage(); y = 15; }
-    // Bloc titre enregistrement
-    const ncColor = r.hasNC ? [163,45,45] : [15,110,86];
-    doc.setFillColor(245,245,243);
-    doc.rect(M, y-4, W-M*2, 8, 'F');
-    doc.setFontSize(10); doc.setFont('helvetica','bold');
-    doc.setTextColor(0,0,0);
-    doc.text((idx+1)+'. '+typeLabPDF[r.type], M+2, y+0.5);
-    doc.setFontSize(8); doc.setFont('helvetica','normal');
-    doc.setTextColor(ncColor[0],ncColor[1],ncColor[2]);
-    doc.text(r.hasNC?'NON CONFORME':'CONFORME', W-M-2, y+0.5, {align:'right'});
-    y += 9;
-
-    const rows = buildDetailRows(r);
-    rows.forEach(row => {
-      if(y > 270){ doc.addPage(); y=15; }
-      doc.setTextColor(100,100,100); doc.setFontSize(8); doc.setFont('helvetica','normal');
-      doc.text(row.k+' :', M+3, y);
-      doc.setTextColor(0,0,0); doc.setFont('helvetica','bold');
-      const val = String(row.v||'—');
-      const lines = doc.splitTextToSize(val, 90);
-      doc.text(lines, 90, y);
-      y += lines.length * 4.5 + 0.5;
+  function drawHeader(pn,tp){
+    doc.setFillColor(24,95,165); doc.rect(0,0,W,18,'F');
+    doc.setTextColor(255,255,255);
+    doc.setFontSize(12); doc.setFont('helvetica','bold');
+    doc.text('HACCP — La Marmite Bleue', M, 8);
+    doc.setFontSize(7.5); doc.setFont('helvetica','normal');
+    doc.text('Saint-Pierre-la-Mer · Fleury', M, 13);
+    doc.text(titre+' | '+periode+' | '+recs.length+' enreg.', W/2, 13, {align:'center'});
+    doc.text('Page '+pn+'/'+tp, W-M, 13, {align:'right'});
+  }
+  function drawTblHeaders(headers, colWidths, x, y){
+    const tot=colWidths.reduce((a,b)=>a+b,0);
+    doc.setFillColor(24,95,165); doc.rect(x,y-4,tot,6.5,'F');
+    doc.setFontSize(7); doc.setFont('helvetica','bold'); doc.setTextColor(255,255,255);
+    let cx=x;
+    headers.forEach((h,i)=>{ doc.text(String(h),cx+1,y+0.5,{maxWidth:colWidths[i]-2}); cx+=colWidths[i]; });
+  }
+  function drawTblRow(vals, colWidths, x, y, ri, isNC){
+    const tot=colWidths.reduce((a,b)=>a+b,0);
+    doc.setFillColor(ri%2===0?255:248); doc.rect(x,y-3.5,tot,6,'F');
+    doc.setFontSize(7); let cx=x;
+    vals.forEach((v,i)=>{
+      const s=String(v||'—');
+      const isLast=i===vals.length-1;
+      if(isLast&&(s==='NC'||s==='Critique')){doc.setTextColor(163,45,45);doc.setFont('helvetica','bold');}
+      else if(isLast&&(s==='OK'||s==='Résolue')){doc.setTextColor(15,110,86);doc.setFont('helvetica','bold');}
+      else{doc.setTextColor(26,26,24);doc.setFont('helvetica','normal');}
+      doc.text(s,cx+1,y+0.5,{maxWidth:colWidths[i]-2});
+      cx+=colWidths[i];
     });
-    doc.setDrawColor(220,220,210); doc.line(M, y, W-M, y); y+=5;
+    doc.setDrawColor(224,224,216); doc.line(x,y+2.5,x+tot,y+2.5);
+  }
+
+  const types=[...new Set(recs.map(r=>r.type))];
+  let firstPage=true, y=22;
+
+  types.forEach(type=>{
+    const group=recs.filter(r=>r.type===type);
+    if(!group.length) return;
+    if(!firstPage){doc.addPage();y=22;}
+    firstPage=false;
+
+    doc.setFillColor(230,241,251); doc.rect(M,y-4,W-M*2,8,'F');
+    doc.setFontSize(10); doc.setFont('helvetica','bold'); doc.setTextColor(12,68,124);
+    doc.text(typeLabPDF[type]||type, M+3, y+0.5);
+    doc.setFontSize(7.5); doc.setFont('helvetica','normal'); doc.setTextColor(100,100,100);
+    doc.text(group.length+' enregistrement(s)', W-M-3, y+0.5, {align:'right'});
+    y+=10;
+
+    if(type==='temps'){
+      const appIds=new Set();
+      group.forEach(r=>{ if(r.releves)Object.keys(r.releves).forEach(k=>appIds.add(k)); else ['frigo1','frigo2','marinade','legumes','cong1','cong2'].forEach(k=>{if(r[k]!=null)appIds.add(k);}); });
+      const appList=[...appIds];
+      const appNoms={};
+      group.forEach(r=>{ if(r.appareils)r.appareils.forEach(a=>{appNoms[a.id]=a.nom;}); });
+      appList.forEach(k=>{if(!appNoms[k])appNoms[k]=k;});
+      const baseW=W-M*2; const fixedW=22+20+22+35+16; const remW=baseW-fixedW;
+      const aW=Math.max(14,Math.floor(remW/Math.max(appList.length,1)));
+      const headers=['Date','Session','Agent',...appList.map(k=>appNoms[k]||k),'Obs.','Statut'];
+      const colWidths=[22,20,22,...appList.map(()=>aW),35,16];
+      drawTblHeaders(headers,colWidths,M,y); y+=7;
+      group.forEach((r,ri)=>{
+        if(y>H-15){doc.addPage();y=22;drawHeader(doc.getNumberOfPages(),'?');}
+        const vals=[r.date,r.session||'—',r.agent||'—',
+          ...appList.map(k=>{const v=r.releves?r.releves[k]:r[k];return v!=null?v+'°':'—';}),
+          (r.obs||'').substring(0,18), r.hasNC?'NC':'OK'];
+        drawTblRow(vals,colWidths,M,y,ri,r.hasNC); y+=6;
+      });
+    } else if(type==='huile'){
+      const h=['Date','Heure','Friteuse','TPM %','T° huile','Couleur','Action','Agent','Statut'];
+      const cw=[22,14,30,16,16,38,50,25,16];
+      drawTblHeaders(h,cw,M,y); y+=7;
+      group.forEach((r,ri)=>{
+        if(y>H-15){doc.addPage();y=22;}
+        drawTblRow([r.date,r.heure||r.time,r.friteuse||'—',r.tpm+'%',r.temp?r.temp+'°':'—',(r.couleur||'').substring(0,18),(r.action||'').substring(0,24),r.signe||'—',r.hasNC?'NC':'OK'],cw,M,y,ri,r.hasNC); y+=6;
+      });
+    } else if(type==='reception'){
+      const h=['Date','Heure','Fournisseur','N° BL','T° liv.','Contrôles','Observations','Signé','Statut'];
+      const cw=[22,14,44,22,14,16,54,22,16];
+      drawTblHeaders(h,cw,M,y); y+=7;
+      group.forEach((r,ri)=>{
+        if(y>H-15){doc.addPage();y=22;}
+        drawTblRow([r.date,r.time,(r.fourn||'—').substring(0,22),r.bl||'—',r.temp?r.temp+'°':'—',r.checks||'—',(r.obs||'').substring(0,27),r.signe||'—',r.hasNC?'NC':'OK'],cw,M,y,ri,r.hasNC); y+=6;
+      });
+    } else if(type==='nettoyage'){
+      const h=['Date','Heure','Zone','Type','Produit','Étapes','Signé'];
+      const cw=[22,14,36,32,60,14,35];
+      drawTblHeaders(h,cw,M,y); y+=7;
+      group.forEach((r,ri)=>{
+        if(y>H-15){doc.addPage();y=22;}
+        drawTblRow([r.date,r.time,r.zone||'—',r.typeN||'—',(r.produit||'—').substring(0,30),r.checks||'—',r.signe||'—'],cw,M,y,ri,false); y+=6;
+      });
+    } else if(type==='fournisseur'){
+      const h=['Date','Heure','Fournisseur','Produit','N° Lot','DLC','Qté','Stockage','Signé'];
+      const cw=[22,14,42,30,22,20,18,25,24];
+      drawTblHeaders(h,cw,M,y); y+=7;
+      group.forEach((r,ri)=>{
+        if(y>H-15){doc.addPage();y=22;}
+        drawTblRow([r.date,r.time,(r.fourn||'—').substring(0,20),r.produit||'—',r.lot||'—',r.dlc||'—',r.qte||'—',r.stockage||'—',r.signe||'—'],cw,M,y,ri,false); y+=6;
+      });
+    } else if(type==='nc'){
+      const gM={'1':'Mineure','2':'Modérée','3':'Critique'};
+      const h=['Date','Heure','Type NC','Gravité','Agent','Action corrective','Statut'];
+      const cw=[22,14,52,18,22,120,19];
+      drawTblHeaders(h,cw,M,y); y+=7;
+      group.forEach((r,ri)=>{
+        if(y>H-15){doc.addPage();y=22;}
+        drawTblRow([r.date,r.time,(r.typeNC||'—').substring(0,28),gM[r.grav]||'—',r.agent||'—',(r.action||'—').substring(0,60),r.statut==='closed'?'Résolue':'En cours'],cw,M,y,ri,r.statut!=='closed'); y+=6;
+      });
+    }
+    y+=6;
   });
 
-  // Pied de page
-  const pageCount = doc.getNumberOfPages();
-  for(let i=1;i<=pageCount;i++){
-    doc.setPage(i);
-    doc.setFontSize(8); doc.setTextColor(150,150,150); doc.setFont('helvetica','normal');
-    doc.text('La Marmite Bleue — Document HACCP — Page '+i+'/'+pageCount, W/2, 292, {align:'center'});
-    doc.text('Document généré automatiquement — Conserver 3 ans', W/2, 296, {align:'center'});
+  const tp=doc.getNumberOfPages();
+  for(let i=1;i<=tp;i++){
+    doc.setPage(i); drawHeader(i,tp);
+    doc.setFontSize(7); doc.setTextColor(150,150,150); doc.setFont('helvetica','normal');
+    doc.text('La Marmite Bleue — HACCP — Conserver 3 ans minimum', W/2, H-3, {align:'center'});
   }
   return doc;
 }
