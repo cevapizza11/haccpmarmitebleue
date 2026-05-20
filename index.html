@@ -468,7 +468,7 @@ body.is-admin .admin-only-flex{display:flex}
           <div><div class="card-title">Réception marchandises</div><div class="card-sub">Contrôle à la livraison</div></div>
         </div>
         <div class="field"><label>Fournisseur</label>
-          <select id="r-fourn"><option value="">— Sélectionner —</option><option>La Noisette d'Oc — Bouzigues (moules)</option><option>V and B Narbonne (boissons)</option><option>Café 1988 / Halles de Narbonne (café)</option><option>Grossiste légumes</option><option>Grossiste sec / surgelés</option><option>Autre fournisseur</option></select>
+          <select id="r-fourn"><option value="">— Sélectionner —</option></select>
         </div>
         <div class="grid2">
           <div class="field" style="margin:0"><label>N° BL / Bon livraison</label><input type="text" id="r-bl" placeholder="BL-2025-..."></div>
@@ -580,7 +580,7 @@ body.is-admin .admin-only-flex{display:flex}
           <div><div class="card-title">Traçabilité fournisseurs</div><div class="card-sub">Enregistrement des lots reçus</div></div>
         </div>
         <div class="field"><label>Fournisseur</label>
-          <select id="f-fourn"><option value="">— Sélectionner —</option><option>La Noisette d'Oc (moules Bouzigues)</option><option>V and B Narbonne</option><option>Café 1988 / Halles de Narbonne</option><option>Grossiste légumes</option><option>Grossiste sec / surgelés</option><option>Autre</option></select>
+          <select id="f-fourn"><option value="">— Sélectionner —</option></select>
         </div>
         <div class="grid2">
           <div class="field" style="margin:0"><label>Produit</label><input type="text" id="f-produit" placeholder="Ex: Moules 1kg"></div>
@@ -755,10 +755,31 @@ body.is-admin .admin-only-flex{display:flex}
     <!-- CONFIG APPAREILS -->
     <div class="page" id="page-config">
       <button class="back-btn" onclick="goTo('temps')"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg> Retour</button>
-      <div class="section-label" style="margin-top:4px">Gestion des appareils de froid</div>
+      <div class="section-label" style="margin-top:4px">Configuration du restaurant</div>
       <div class="info-block">
-        <p>Ajoutez, renommez ou supprimez vos frigos et congélateurs. Les modifications s'appliquent immédiatement sur tous les supports connectés.</p>
+        <p>Gérez vos fournisseurs et vos appareils de froid. Les modifications s'appliquent immédiatement sur tous les supports.</p>
       </div>
+
+      <!-- FOURNISSEURS -->
+      <div class="section-label">Gestion des fournisseurs</div>
+      <div class="card">
+        <div class="card-head">
+          <div class="card-icon icon-teal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div>
+          <div><div class="card-title">Ajouter un fournisseur</div><div class="card-sub">Apparaîtra dans Réception et Traçabilité</div></div>
+        </div>
+        <div class="grid2">
+          <div class="field" style="margin:0"><label>Nom du fournisseur</label><input type="text" id="cfg-fourn-nom" placeholder="Ex: La Noisette d'Oc, Metro..."></div>
+          <div class="field" style="margin:0"><label>Produits fournis</label><input type="text" id="cfg-fourn-produits" placeholder="Ex: Moules, Boissons..."></div>
+        </div>
+        <button class="btn btn-teal" style="margin-top:10px" onclick="addFournisseur()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Ajouter le fournisseur
+        </button>
+      </div>
+      <div class="section-label">Fournisseurs configurés</div>
+      <div id="cfg-fourn-list"><div class="empty-state">Chargement...</div></div>
+
+      <div class="section-label">Gestion des appareils de froid</div>
 
       <!-- Ajouter un appareil -->
       <div class="card">
@@ -1228,6 +1249,7 @@ function initApp(){
   setSyncState('ok');
   refreshHome();
   loadAppareils();
+  loadFournisseurs();
   initAdmin();
   checkAlertes();
   // Dates par défaut du rapport
@@ -1263,7 +1285,7 @@ function goTo(page){
   if(page==='history') renderHistory();
   if(page==='fournisseurs') renderFournList();
   if(page==='nc') renderNCList();
-  if(page==='config') renderCfgList();
+  if(page==='config') { renderCfgList(); refreshFournSelects(); }
 }
 window.goTo = goTo;
 
@@ -1773,6 +1795,96 @@ ${body}
   showToast('✓ Word exporté !');
 }
 window.exportRapportWord = exportRapportWord;
+
+// ── CONFIG FOURNISSEURS ─────────────────────────────────────────────────
+let _fournisseurs = [];
+
+async function loadFournisseurs() {
+  try {
+    const snap = await window._getDoc(window._doc('config', 'fournisseurs'));
+    if(snap.exists() && snap.data().list) {
+      _fournisseurs = snap.data().list;
+    } else {
+      // Fournisseurs par défaut La Marmite Bleue
+      _fournisseurs = [
+        { nom: 'La Noisette d\'Oc', produits: 'Moules de Bouzigues' },
+        { nom: 'V and B Narbonne', produits: 'Boissons, bières' },
+        { nom: 'Café 1988 / Halles de Narbonne', produits: 'Café, condiments' },
+        { nom: 'Grossiste légumes', produits: 'Légumes frais' },
+        { nom: 'Grossiste sec / surgelés', produits: 'Frites, surgelés' },
+      ];
+      await saveFournisseurs();
+    }
+  } catch(e) { _fournisseurs = []; }
+  renderFournConfig();
+  refreshFournSelects();
+}
+
+async function saveFournisseurs() {
+  try {
+    await window._setDoc(window._doc('config', 'fournisseurs'), { list: _fournisseurs });
+  } catch(e) {}
+}
+
+function refreshFournSelects() {
+  ['r-fourn', 'f-fourn'].forEach(id => {
+    const sel = document.getElementById(id);
+    if(!sel) return;
+    const current = sel.value;
+    sel.innerHTML = '<option value="">— Sélectionner —</option>';
+    _fournisseurs.forEach(f => {
+      const opt = document.createElement('option');
+      opt.value = f.nom;
+      opt.textContent = f.produits ? `${f.nom} (${f.produits})` : f.nom;
+      sel.appendChild(opt);
+    });
+    const autre = document.createElement('option');
+    autre.value = 'Autre fournisseur'; autre.textContent = 'Autre fournisseur';
+    sel.appendChild(autre);
+    if(current) sel.value = current;
+  });
+}
+
+function renderFournConfig() {
+  const el = document.getElementById('cfg-fourn-list');
+  if(!el) return;
+  if(_fournisseurs.length === 0) { el.innerHTML = '<div class="empty-state">Aucun fournisseur configuré</div>'; return; }
+  el.innerHTML = _fournisseurs.map((f, i) => `
+    <div class="appareil-item">
+      <div class="appareil-icon icon-teal" style="font-size:18px">🚚</div>
+      <div class="appareil-body">
+        <div class="appareil-name">${f.nom}</div>
+        <div class="appareil-range">${f.produits || 'Produits non précisés'}</div>
+      </div>
+      <button class="appareil-del" onclick="delFournisseur(${i})" title="Supprimer">
+        <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+      </button>
+    </div>`).join('');
+}
+
+async function addFournisseur() {
+  const nom = document.getElementById('cfg-fourn-nom')?.value.trim();
+  const produits = document.getElementById('cfg-fourn-produits')?.value.trim();
+  if(!nom) { showToast('Saisir le nom du fournisseur'); return; }
+  if(_fournisseurs.find(f => f.nom === nom)) { showToast('Ce fournisseur existe déjà'); return; }
+  _fournisseurs.push({ nom, produits: produits || '' });
+  await saveFournisseurs();
+  renderFournConfig(); refreshFournSelects();
+  document.getElementById('cfg-fourn-nom').value = '';
+  document.getElementById('cfg-fourn-produits').value = '';
+  showToast(`✓ "${nom}" ajouté`);
+}
+window.addFournisseur = addFournisseur;
+
+async function delFournisseur(idx) {
+  const nom = _fournisseurs[idx].nom;
+  if(!confirm(`Supprimer "${nom}" ?`)) return;
+  _fournisseurs.splice(idx, 1);
+  await saveFournisseurs();
+  renderFournConfig(); refreshFournSelects();
+  showToast(`"${nom}" supprimé`);
+}
+window.delFournisseur = delFournisseur;
 
 // ── APPAREILS DYNAMIQUES ────────────────────────────────────────────────
 // Appareils par défaut
