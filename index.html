@@ -824,6 +824,17 @@ body.is-admin .admin-only-flex{display:flex}
         <span class="admin-badge">👑 Administration</span>
       </div>
 
+      <!-- Raccourci vers Config -->
+      <div class="section-label">Configuration</div>
+      <div class="rapport-card" style="display:flex;align-items:center;gap:12px;padding:14px">
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:600">Fournisseurs &amp; appareils</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:2px">Gérer vos fournisseurs, frigos et congélateurs</div>
+        </div>
+        <button onclick="goTo('config')" style="background:var(--blue);color:white;border:none;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer">
+          ⚙️ Ouvrir
+        </button>
+      </div>
       <div class="section-label">Alertes relevés manquants</div>
       <div class="rapport-card">
         <div style="font-size:13px;font-weight:600;margin-bottom:10px">Notifications push — Rappels automatiques</div>
@@ -1342,7 +1353,7 @@ async function initAdmin() {
 // Protéger la page config : seul manager/admin peut y accéder
 const _origGoTo = window.goTo;
 window.goTo = function(page) {
-  if(page === 'config' && !isManager()) { showToast('Accès réservé au gérant ou manager'); return; }
+  if(page === 'config' && !isManager() && !isAdmin()) { showToast('Accès réservé au gérant ou manager'); return; }
   if(page === 'admin' && !isAdmin()) { showToast('Accès réservé à Thomas'); return; }
   _origGoTo(page);
   if(page === 'admin') loadAdminPage();
