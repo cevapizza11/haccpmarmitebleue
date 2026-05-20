@@ -207,6 +207,40 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .appareil-del{width:32px;height:32px;border-radius:8px;background:var(--red-light);color:var(--red);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
 .appareil-del svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2.5}
 
+/* ADMIN BADGE */
+.admin-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;padding:3px 8px;border-radius:20px;background:#FFF3CD;color:#854F0B}
+.admin-only{display:none}
+body.is-admin .admin-only{display:block}
+body.is-admin .admin-only-flex{display:flex}
+.admin-only-flex{display:none}
+
+/* ALERTES RELEVÉS */
+.alert-banner{background:var(--red-light);border:1px solid var(--red);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:10px;display:flex;align-items:flex-start;gap:10px}
+.alert-banner svg{width:18px;height:18px;stroke:var(--red);fill:none;stroke-width:2;flex-shrink:0;margin-top:1px}
+.alert-banner-body{flex:1}
+.alert-banner-title{font-size:13px;font-weight:700;color:var(--red)}
+.alert-banner-sub{font-size:12px;color:var(--red);margin-top:2px;opacity:.85}
+.notif-dot{position:absolute;top:4px;right:4px;width:9px;height:9px;background:var(--red);border-radius:50%;border:2px solid var(--card)}
+.nav-btn{position:relative}
+
+/* RAPPORT */
+.rapport-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:10px}
+.rapport-stat{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:12px 0}
+.rapport-stat-item{background:var(--bg);border-radius:var(--radius-sm);padding:10px;text-align:center}
+.rapport-stat-num{font-size:22px;font-weight:700}
+.rapport-stat-lbl{font-size:10px;color:var(--text2);margin-top:2px}
+.btn-word{display:flex;align-items:center;gap:6px;padding:11px 14px;background:#185FA5;color:white;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;width:100%;justify-content:center;margin-top:8px}
+.btn-word:active{opacity:.85}
+
+/* GESTION EMPLOYÉS */
+.emp-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
+.emp-item:last-child{border:none}
+.emp-avatar{width:34px;height:34px;border-radius:50%;background:var(--blue-light);color:var(--blue);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
+.emp-body{flex:1}
+.emp-name{font-size:13px;font-weight:600}
+.emp-role{font-size:11px;color:var(--text2);margin-top:2px}
+.role-toggle{font-size:11px;font-weight:600;padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:none;cursor:pointer;color:var(--blue)}
+
 /* HISTORIQUE FILTRES */
 .filter-bar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
 .filter-bar input[type=date]{flex:1;min-width:130px;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;background:var(--card);color:var(--text);font-family:inherit}
@@ -327,6 +361,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
     <!-- ACCUEIL -->
     <div class="page active" id="page-home">
+      <!-- Bannières alertes relevés manquants -->
+      <div id="alertes-container"></div>
       <div class="chips">
         <div class="chip"><div class="chip-num" id="s-ok">0</div><div class="chip-lbl">OK aujourd'hui</div></div>
         <div class="chip"><div class="chip-num" id="s-nc" style="color:var(--red)">0</div><div class="chip-lbl">Non-conformités</div></div>
@@ -708,6 +744,62 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <div id="cfg-list"><div class="empty-state">Chargement...</div></div>
     </div>
 
+    <!-- PAGE ADMIN -->
+    <div class="page" id="page-admin">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+        <button class="back-btn" style="margin:0" onclick="goTo('home')"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg> Retour</button>
+        <span class="admin-badge">👑 Administration</span>
+      </div>
+
+      <div class="section-label">Alertes relevés manquants</div>
+      <div class="rapport-card">
+        <div style="font-size:13px;font-weight:600;margin-bottom:10px">Notifications push — Rappels automatiques</div>
+        <div id="notif-status" class="info-block"><p>Chargement...</p></div>
+        <button class="btn btn-blue" style="margin-top:8px" onclick="toggleNotifications()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span id="notif-btn-label">Activer les notifications</span>
+        </button>
+        <div style="font-size:11px;color:var(--text2);margin-top:8px">Rappels si aucun relevé de températures n'a été fait à 10h30, 15h et 20h.</div>
+      </div>
+
+      <div class="section-label">Gestion des employés &amp; rôles</div>
+      <div class="rapport-card">
+        <div style="font-size:12px;color:var(--text2);margin-bottom:10px">Le rôle <b>Manager</b> permet de gérer les appareils de froid. Tu restes le seul admin.</div>
+        <div id="emp-list"><div class="empty-state">Chargement...</div></div>
+      </div>
+
+      <div class="section-label">Rapport de période — Classeur HACCP</div>
+      <div class="rapport-card">
+        <div style="font-size:13px;font-weight:600;margin-bottom:12px">Générer un rapport complet</div>
+        <div class="grid2">
+          <div class="field" style="margin:0"><label>Du</label><input type="date" id="rpt-from"></div>
+          <div class="field" style="margin:0"><label>Au</label><input type="date" id="rpt-to"></div>
+        </div>
+        <div class="field" style="margin-top:10px"><label>Modules à inclure</label>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px">
+            <label style="display:flex;align-items:center;gap:4px;font-size:12px;background:var(--bg);padding:5px 10px;border-radius:6px;border:1px solid var(--border);cursor:pointer"><input type="checkbox" value="temps" checked> 🌡 Températures</label>
+            <label style="display:flex;align-items:center;gap:4px;font-size:12px;background:var(--bg);padding:5px 10px;border-radius:6px;border:1px solid var(--border);cursor:pointer"><input type="checkbox" value="reception" checked> 🚚 Réception</label>
+            <label style="display:flex;align-items:center;gap:4px;font-size:12px;background:var(--bg);padding:5px 10px;border-radius:6px;border:1px solid var(--border);cursor:pointer"><input type="checkbox" value="nettoyage" checked> 🧹 Nettoyage</label>
+            <label style="display:flex;align-items:center;gap:4px;font-size:12px;background:var(--bg);padding:5px 10px;border-radius:6px;border:1px solid var(--border);cursor:pointer"><input type="checkbox" value="huile" checked> 🔥 Huile</label>
+            <label style="display:flex;align-items:center;gap:4px;font-size:12px;background:var(--bg);padding:5px 10px;border-radius:6px;border:1px solid var(--border);cursor:pointer"><input type="checkbox" value="fournisseur" checked> 📦 Traçabilité</label>
+            <label style="display:flex;align-items:center;gap:4px;font-size:12px;background:var(--bg);padding:5px 10px;border-radius:6px;border:1px solid var(--border);cursor:pointer"><input type="checkbox" value="nc" checked> ⚠ NC</label>
+          </div>
+        </div>
+        <div id="rpt-preview" style="display:none" class="rapport-stat"></div>
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <button class="btn btn-blue" style="flex:1" onclick="previewRapport()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Aperçu
+          </button>
+          <button class="btn-pdf" onclick="exportRapportPDF()">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> PDF
+          </button>
+          <button onclick="exportRapportWord()" style="display:flex;align-items:center;gap:5px;padding:9px 14px;background:#0F6E56;color:white;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg> Word
+          </button>
+        </div>
+      </div>
+    </div>
+
   </div>
   <nav class="nav">
     <button class="nav-btn active" id="nav-home" onclick="goTo('home')">
@@ -733,6 +825,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <button class="nav-btn" id="nav-history" onclick="goTo('history')">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
       <span class="nav-label">Historique</span>
+    </button>
+    <button class="nav-btn admin-only" id="nav-admin" onclick="goTo('admin')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      <span class="nav-label">Admin</span>
+      <div class="notif-dot" id="nav-notif-dot" style="display:none"></div>
     </button>
   </nav>
 </div>
@@ -947,6 +1044,13 @@ function initApp(){
   setSyncState('ok');
   refreshHome();
   loadAppareils();
+  initAdmin();
+  checkAlertes();
+  // Dates par défaut du rapport
+  const rptTo = document.getElementById('rpt-to');
+  const rptFrom = document.getElementById('rpt-from');
+  if(rptTo) rptTo.value = TODAY;
+  if(rptFrom){ const d=new Date(); d.setDate(d.getDate()-30); rptFrom.value=d.toISOString().split('T')[0]; }
 }
 
 // Pré-remplir tous les champs prénom de l'appli et les bloquer
@@ -975,6 +1079,7 @@ function goTo(page){
   if(page==='history') renderHistory();
   if(page==='fournisseurs') renderFournList();
   if(page==='nc') renderNCList();
+  if(page==='config') renderCfgList();
 }
 window.goTo = goTo;
 
@@ -997,6 +1102,351 @@ function resetChecks(prefix){
     if(el) el.classList.remove('on');
   });
 }
+
+// ── ADMIN / RÔLES ───────────────────────────────────────────────────────
+const ADMIN_EMAIL = 'thomas'; // on vérifie que l'email contient "thomas"
+// Pour être plus précis, mets ici ton email exact : 'thomas@lamarmitebleue.fr'
+
+function isAdmin() {
+  const email = (window._userEmail || '').toLowerCase();
+  return email.includes('thomas'); // adapte avec ton vrai email si besoin
+}
+
+function isManager() {
+  return window._userRole === 'manager' || isAdmin();
+}
+
+async function initAdmin() {
+  // Charger le rôle de l'utilisateur connecté
+  try {
+    const snap = await window._getDoc(window._doc('users', window._uid));
+    window._userRole = snap.exists() ? (snap.data().role || 'employe') : 'employe';
+  } catch(e) { window._userRole = 'employe'; }
+
+  // Appliquer la classe admin sur le body
+  if(isAdmin()) {
+    document.body.classList.add('is-admin');
+  } else {
+    document.body.classList.remove('is-admin');
+  }
+
+  // Mettre à jour le bouton Gérer dans la page températures (visible si manager ou admin)
+  const cfgBtn = document.querySelector('[onclick="goTo(\'config\')"]');
+  if(cfgBtn) cfgBtn.style.display = isManager() ? 'flex' : 'none';
+}
+
+// Protéger la page config : seul manager/admin peut y accéder
+const _origGoTo = window.goTo;
+window.goTo = function(page) {
+  if(page === 'config' && !isManager()) { showToast('Accès réservé au gérant ou manager'); return; }
+  if(page === 'admin' && !isAdmin()) { showToast('Accès réservé à Thomas'); return; }
+  _origGoTo(page);
+  if(page === 'admin') loadAdminPage();
+};
+
+async function loadAdminPage() {
+  loadEmpList();
+  updateNotifStatus();
+}
+
+// ── GESTION EMPLOYÉS ────────────────────────────────────────────────────
+async function loadEmpList() {
+  const el = document.getElementById('emp-list');
+  if(!el) return;
+  try {
+    const q = window._query(window._col('users'), window._limit(50));
+    const snap = await window._getDocs(q);
+    if(snap.empty) { el.innerHTML='<div class="empty-state">Aucun employé inscrit</div>'; return; }
+    el.innerHTML = snap.docs.map(d => {
+      const u = d.data();
+      const uid = d.id;
+      const role = u.role || 'employe';
+      const isThomas = (u.email||'').toLowerCase().includes('thomas');
+      if(isThomas) return `<div class="emp-item">
+        <div class="emp-avatar">${(u.prenom||'?')[0]}</div>
+        <div class="emp-body"><div class="emp-name">${u.prenom||'—'} <span style="font-size:10px">👑</span></div><div class="emp-role">Gérant / Administrateur</div></div>
+      </div>`;
+      return `<div class="emp-item">
+        <div class="emp-avatar">${(u.prenom||'?')[0]}</div>
+        <div class="emp-body">
+          <div class="emp-name">${u.prenom||'—'}</div>
+          <div class="emp-role">${role==='manager'?'👔 Manager (peut gérer les appareils)':'👤 Employé'}</div>
+        </div>
+        <button class="role-toggle" onclick="toggleRole('${uid}','${role}','${u.prenom||''}')">
+          ${role==='manager'?'Rétrograder':'Promouvoir'}
+        </button>
+      </div>`;
+    }).join('');
+  } catch(e) { el.innerHTML='<div class="empty-state">Erreur de chargement</div>'; }
+}
+
+async function toggleRole(uid, currentRole, prenom) {
+  const newRole = currentRole === 'manager' ? 'employe' : 'manager';
+  const label = newRole === 'manager' ? `Promouvoir ${prenom} Manager ?` : `Rétrograder ${prenom} en Employé ?`;
+  if(!confirm(label)) return;
+  try {
+    await window._setDoc(window._doc('users', uid), { role: newRole }, { merge: true });
+    showToast(`✓ ${prenom} → ${newRole==='manager'?'Manager':'Employé'}`);
+    loadEmpList();
+  } catch(e) { showToast('Erreur : ' + e.message); }
+}
+window.toggleRole = toggleRole;
+
+// ── ALERTES RELEVÉS MANQUANTS ───────────────────────────────────────────
+const SESSIONS_HEURES = [
+  { session:'Ouverture', heure:10, minute:30 },
+  { session:'Midi',      heure:15, minute:0  },
+  { session:'Fermeture', heure:20, minute:0  },
+];
+
+async function checkAlertes() {
+  // Vérifier si les relevés du jour ont été faits
+  try {
+    const q = window._query(window._col('haccp_records'),
+      window._where('type','==','temps'),
+      window._where('date','==',TODAY), window._limit(20));
+    const snap = await window._getDocs(q);
+    const sessions = snap.docs.map(d => d.data().session);
+    const hNow = NOW.getHours() * 60 + NOW.getMinutes();
+
+    let manquants = [];
+    SESSIONS_HEURES.forEach(s => {
+      const deadline = s.heure * 60 + s.minute;
+      if(hNow > deadline && !sessions.includes(s.session)) {
+        manquants.push(s.session);
+      }
+    });
+
+    // Afficher bannières sur l'accueil
+    renderAlertes(manquants);
+    // Badge rouge nav admin
+    const dot = document.getElementById('nav-notif-dot');
+    if(dot) dot.style.display = manquants.length > 0 ? 'block' : 'none';
+  } catch(e) {}
+}
+
+function renderAlertes(manquants) {
+  const container = document.getElementById('alertes-container');
+  if(!container) return;
+  if(manquants.length === 0) { container.innerHTML=''; return; }
+  container.innerHTML = manquants.map(s => `
+    <div class="alert-banner">
+      <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <div class="alert-banner-body">
+        <div class="alert-banner-title">Relevé ${s} non effectué</div>
+        <div class="alert-banner-sub">Le relevé de températures de la session ${s} n'a pas encore été enregistré aujourd'hui.</div>
+      </div>
+      <button onclick="goTo('temps')" style="background:var(--red);color:white;border:none;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap">Faire →</button>
+    </div>`).join('');
+}
+
+// Notifications Web Push
+async function toggleNotifications() {
+  if(!('Notification' in window)) { showToast('Notifications non supportées sur ce navigateur'); return; }
+  if(Notification.permission === 'granted') {
+    showToast('Notifications déjà activées ✓');
+    scheduleNotifChecks();
+    return;
+  }
+  const perm = await Notification.requestPermission();
+  if(perm === 'granted') {
+    scheduleNotifChecks();
+    showToast('✓ Notifications activées !');
+    updateNotifStatus();
+  } else {
+    showToast('Notifications refusées — vérifier les paramètres du navigateur');
+  }
+}
+window.toggleNotifications = toggleNotifications;
+
+function scheduleNotifChecks() {
+  // Vérifier toutes les 5 minutes
+  setInterval(async () => {
+    if(Notification.permission !== 'granted') return;
+    const now = new Date();
+    const hNow = now.getHours() * 60 + now.getMinutes();
+    try {
+      const q = window._query(window._col('haccp_records'),
+        window._where('type','==','temps'),
+        window._where('date','==',TODAY), window._limit(20));
+      const snap = await window._getDocs(q);
+      const sessions = snap.docs.map(d=>d.data().session);
+      SESSIONS_HEURES.forEach(s => {
+        const deadline = s.heure * 60 + s.minute;
+        // Déclencher dans les 10 min suivant la deadline
+        if(hNow >= deadline && hNow < deadline + 10 && !sessions.includes(s.session)) {
+          new Notification('⚠ HACCP — La Marmite Bleue', {
+            body: `Relevé de températures "${s.session}" non effectué !`,
+            icon: '/favicon.ico',
+            tag: 'haccp-' + s.session
+          });
+        }
+      });
+    } catch(e) {}
+  }, 5 * 60 * 1000);
+}
+
+function updateNotifStatus() {
+  const el = document.getElementById('notif-status');
+  const btn = document.getElementById('notif-btn-label');
+  if(!el) return;
+  if(!('Notification' in window)) {
+    el.innerHTML='<p>Notifications non disponibles sur ce navigateur.</p>'; return;
+  }
+  if(Notification.permission === 'granted') {
+    el.style.background='#E1F5EE'; el.style.borderColor='#0F6E56';
+    el.innerHTML='<p style="color:#0F6E56">✓ Notifications activées — rappels automatiques à 10h30, 15h et 20h</p>';
+    if(btn) btn.textContent = 'Notifications activées ✓';
+  } else if(Notification.permission === 'denied') {
+    el.style.background='#FCEBEB'; el.style.borderColor='#A32D2D';
+    el.innerHTML='<p style="color:#A32D2D">✕ Notifications bloquées — autoriser dans les réglages du navigateur</p>';
+    if(btn) btn.textContent = 'Débloquer dans les réglages';
+  } else {
+    el.innerHTML='<p>Appuie sur le bouton pour activer les rappels automatiques sur cet appareil.</p>';
+    if(btn) btn.textContent = 'Activer les notifications';
+  }
+}
+
+// ── RAPPORT DE PÉRIODE ──────────────────────────────────────────────────
+let _rapportRecs = [];
+
+async function previewRapport() {
+  const from = document.getElementById('rpt-from').value;
+  const to = document.getElementById('rpt-to').value;
+  if(!from || !to) { showToast('Sélectionner une période'); return; }
+  const modules = [...document.querySelectorAll('#page-admin input[type=checkbox]:checked')].map(c=>c.value);
+  showToast('⏳ Chargement des données...');
+  try {
+    const q = window._query(window._col('haccp_records'), window._limit(1000));
+    const snap = await window._getDocs(q);
+    _rapportRecs = snap.docs.map(d=>d.data())
+      .filter(r => r.date >= from && r.date <= to && modules.includes(r.type))
+      .sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));
+
+    const prev = document.getElementById('rpt-preview');
+    prev.style.display = 'grid';
+    const ncCount = _rapportRecs.filter(r=>r.hasNC).length;
+    const days = new Set(_rapportRecs.map(r=>r.date)).size;
+    prev.innerHTML = `
+      <div class="rapport-stat-item"><div class="rapport-stat-num">${_rapportRecs.length}</div><div class="rapport-stat-lbl">Enregistrements</div></div>
+      <div class="rapport-stat-item"><div class="rapport-stat-num" style="color:var(--red)">${ncCount}</div><div class="rapport-stat-lbl">Non-conformités</div></div>
+      <div class="rapport-stat-item"><div class="rapport-stat-num">${days}</div><div class="rapport-stat-lbl">Jours couverts</div></div>
+      <div class="rapport-stat-item"><div class="rapport-stat-num">${modules.length}</div><div class="rapport-stat-lbl">Modules inclus</div></div>`;
+    showToast(`✓ ${_rapportRecs.length} enregistrements trouvés`);
+  } catch(e) { showToast('Erreur : ' + e.message); }
+}
+window.previewRapport = previewRapport;
+
+async function exportRapportPDF() {
+  if(_rapportRecs.length === 0) { await previewRapport(); }
+  if(_rapportRecs.length === 0) { showToast('Aucune donnée pour cette période'); return; }
+  const from = document.getElementById('rpt-from').value;
+  const to = document.getElementById('rpt-to').value;
+  showToast('⏳ Génération PDF...');
+  const ok = await loadJsPDF();
+  if(!ok) { showToast('Erreur chargement PDF'); return; }
+  const doc = buildPDFContent(_rapportRecs, `Rapport HACCP — La Marmite Bleue`, `${from} → ${to}`);
+  doc.save(`Rapport_HACCP_${from}_${to}.pdf`);
+  showToast('✓ PDF exporté !');
+}
+window.exportRapportPDF = exportRapportPDF;
+
+async function exportRapportWord() {
+  if(_rapportRecs.length === 0) { await previewRapport(); }
+  if(_rapportRecs.length === 0) { showToast('Aucune donnée pour cette période'); return; }
+  showToast('⏳ Génération Word...');
+  const from = document.getElementById('rpt-from').value;
+  const to = document.getElementById('rpt-to').value;
+
+  // Charger docx depuis CDN
+  const ok = await new Promise(res => {
+    if(window.docx) { res(true); return; }
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/docx/7.8.2/docx.umd.min.js';
+    s.onload = () => res(true); s.onerror = () => res(false);
+    document.head.appendChild(s);
+  });
+  if(!ok) { showToast('Erreur chargement Word'); return; }
+
+  const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
+    AlignmentType, BorderStyle, WidthType, ShadingType, VerticalAlign, PageNumber } = window.docx;
+
+  const W = 9026;
+  const bdr = { style:BorderStyle.SINGLE, size:1, color:'E0E0D8' };
+  const bdrs = { top:bdr, bottom:bdr, left:bdr, right:bdr };
+
+  function wp(text, opts={}) {
+    return new Paragraph({ spacing:{before:60,after:80}, children:[new TextRun({ text, size:22, font:'Arial', ...opts })] });
+  }
+  function wh2(text) {
+    return new Paragraph({ spacing:{before:240,after:120}, children:[new TextRun({ text, size:26, bold:true, font:'Arial', color:'185FA5' })] });
+  }
+  function wtbl(headers, rows, widths) {
+    const total = widths.reduce((a,b)=>a+b,0);
+    return new Table({ width:{size:total,type:WidthType.DXA}, columnWidths:widths,
+      rows:[
+        new TableRow({ tableHeader:true, children:headers.map((h,i)=>new TableCell({
+          borders:bdrs, width:{size:widths[i],type:WidthType.DXA},
+          shading:{fill:'185FA5',type:ShadingType.CLEAR},
+          margins:{top:60,bottom:60,left:80,right:80},
+          children:[new Paragraph({children:[new TextRun({text:h,bold:true,size:18,font:'Arial',color:'FFFFFF'})]})]
+        }))}),
+        ...rows.map((row,ri)=>new TableRow({children:row.map((cell,ci)=>new TableCell({
+          borders:bdrs, width:{size:widths[ci],type:WidthType.DXA},
+          shading:{fill:ri%2===0?'FFFFFF':'F5F5F3',type:ShadingType.CLEAR},
+          margins:{top:50,bottom:50,left:80,right:80},
+          children:[new Paragraph({children:[new TextRun({text:String(cell||'—'),size:18,font:'Arial'})]})]
+        }))}))
+      ]
+    });
+  }
+
+  const typeLabFr = {temps:'Températures',reception:'Réception',nettoyage:'Nettoyage',huile:'Huile friture',fournisseur:'Traçabilité',nc:'Non-conformité'};
+  const ncCount = _rapportRecs.filter(r=>r.hasNC).length;
+  const days = new Set(_rapportRecs.map(r=>r.date)).size;
+
+  const children = [
+    new Paragraph({ alignment:AlignmentType.CENTER, spacing:{before:0,after:160},
+      children:[new TextRun({text:'RAPPORT HACCP — LA MARMITE BLEUE', bold:true, size:36, font:'Arial', color:'185FA5'})] }),
+    new Paragraph({ alignment:AlignmentType.CENTER, spacing:{before:0,after:80},
+      children:[new TextRun({text:`Période : ${from} → ${to}`, size:22, font:'Arial', color:'6B6B65', italics:true})] }),
+    new Paragraph({ alignment:AlignmentType.CENTER, spacing:{before:0,after:240},
+      children:[new TextRun({text:`Généré le ${new Date().toLocaleDateString('fr-FR')} · ${_rapportRecs.length} enregistrements · ${ncCount} NC · ${days} jours`, size:20, font:'Arial', color:'6B6B65'})] }),
+    wh2('Résumé de la période'),
+    wtbl(['Module','Enregistrements','Non-conformités'],
+      Object.entries(typeLabFr).map(([k,v])=>{
+        const recs = _rapportRecs.filter(r=>r.type===k);
+        return [v, recs.length.toString(), recs.filter(r=>r.hasNC).length.toString()];
+      }), [4000,2500,2526]),
+    new Paragraph({spacing:{before:200,after:0},children:[new TextRun('')]}),
+    wh2('Détail des enregistrements'),
+    wtbl(['Date','Heure','Type','Agent/Responsable','Statut'],
+      _rapportRecs.map(r=>[r.date, r.time, typeLabFr[r.type]||r.type, r.agent||r.signe||r.fourn||'—', r.hasNC?'NON CONFORME':'Conforme']),
+      [1400,1000,2000,2600,2026]),
+    new Paragraph({spacing:{before:400,after:0}, alignment:AlignmentType.CENTER,
+      border:{top:{style:BorderStyle.SINGLE,size:4,color:'E0E0D8',space:4}},
+      children:[new TextRun({text:'La Marmite Bleue · Saint-Pierre-la-Mer · Rapport HACCP · Conserver 3 ans', size:16, font:'Arial', color:'9B9B95', italics:true})] }),
+  ];
+
+  const doc = new Document({
+    styles:{ default:{ document:{ run:{ font:'Arial', size:22 } } } },
+    sections:[{ properties:{ page:{ size:{width:11906,height:16838}, margin:{top:1440,right:1300,bottom:1440,left:1300} } },
+      headers:{ default: { children:[new Paragraph({
+        border:{bottom:{style:BorderStyle.SINGLE,size:4,color:'185FA5',space:2}},
+        spacing:{after:80},
+        children:[new TextRun({text:`Rapport HACCP — La Marmite Bleue · ${from} → ${to}`, size:18, font:'Arial', color:'185FA5'})]
+      })] } },
+      children }]
+  });
+
+  const buf = await Packer.toBuffer(doc);
+  const blob = new Blob([buf], {type:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download=`Rapport_HACCP_${from}_${to}.docx`; a.click();
+  URL.revokeObjectURL(url);
+  showToast('✓ Word exporté !');
+}
+window.exportRapportWord = exportRapportWord;
 
 // ── APPAREILS DYNAMIQUES ────────────────────────────────────────────────
 // Appareils par défaut
@@ -1390,6 +1840,7 @@ const typeLabels = {
 };
 async function refreshHome(){
   if(!window._uid) return;
+  checkAlertes();
   try {
     const q = window._query(window._col('haccp_records'),
       window._where('date','==',TODAY),
