@@ -198,6 +198,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .ccp-warn{background:var(--amber-light);color:var(--amber)}
 .ccp-red{background:var(--red-light);color:var(--red)}
 
+/* CONFIG APPAREILS */
+.appareil-item{display:flex;align-items:center;gap:10px;padding:11px 14px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:8px}
+.appareil-icon{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px}
+.appareil-body{flex:1;min-width:0}
+.appareil-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.appareil-range{font-size:11px;color:var(--text2);margin-top:2px}
+.appareil-del{width:32px;height:32px;border-radius:8px;background:var(--red-light);color:var(--red);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
+.appareil-del svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2.5}
+
 /* HISTORIQUE FILTRES */
 .filter-bar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
 .filter-bar input[type=date]{flex:1;min-width:130px;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;background:var(--card);color:var(--text);font-family:inherit}
@@ -369,24 +378,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <div class="card">
         <div class="card-head">
           <div class="card-icon icon-blue"><svg viewBox="0 0 24 24"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg></div>
-          <div><div class="card-title">Relevé de températures</div><div class="card-sub" id="t-date-sub">—</div></div>
+          <div style="flex:1"><div class="card-title">Relevé de températures</div><div class="card-sub" id="t-date-sub">—</div></div>
+          <button onclick="goTo('config')" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:12px;color:var(--text2);cursor:pointer;display:flex;align-items:center;gap:4px">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            Gérer
+          </button>
         </div>
         <div class="grid2">
           <div class="field" style="margin:0"><label>Session</label><select id="t-session"><option>Ouverture</option><option>Midi</option><option>Fermeture</option></select></div>
           <div class="field" style="margin:0"><label>Responsable</label><input type="text" id="t-agent" placeholder="Prénom"></div>
         </div>
-        <div class="section-label">Réfrigérateurs</div>
-        <div class="temps-grid">
-          <div class="temp-box" id="tb-frigo1"><label>Frigo 1 (°C)</label><input type="number" id="tv-frigo1" placeholder="—" oninput="chkT(this,'frigo1',-2,4)"><div class="temp-status st-ok" id="ts-frigo1">-2 → +4°C</div></div>
-          <div class="temp-box" id="tb-frigo2"><label>Frigo 2 (°C)</label><input type="number" id="tv-frigo2" placeholder="—" oninput="chkT(this,'frigo2',-2,4)"><div class="temp-status st-ok" id="ts-frigo2">-2 → +4°C</div></div>
-          <div class="temp-box" id="tb-marinade"><label>Bac marinade (°C)</label><input type="number" id="tv-marinade" placeholder="—" oninput="chkT(this,'marinade',-2,4)"><div class="temp-status st-ok" id="ts-marinade">-2 → +4°C</div></div>
-          <div class="temp-box" id="tb-legumes"><label>Légumes (°C)</label><input type="number" id="tv-legumes" placeholder="—" oninput="chkT(this,'legumes',0,6)"><div class="temp-status st-ok" id="ts-legumes">0 → +6°C</div></div>
-        </div>
-        <div class="section-label">Congélateurs</div>
-        <div class="temps-grid">
-          <div class="temp-box" id="tb-cong1"><label>Congél. 1 (°C)</label><input type="number" id="tv-cong1" placeholder="—" oninput="chkT(this,'cong1',-25,-15)"><div class="temp-status st-ok" id="ts-cong1">-25 → -15°C</div></div>
-          <div class="temp-box" id="tb-cong2"><label>Congél. 2 (°C)</label><input type="number" id="tv-cong2" placeholder="—" oninput="chkT(this,'cong2',-25,-15)"><div class="temp-status st-ok" id="ts-cong2">-25 → -15°C</div></div>
-        </div>
+        <!-- Grille dynamique générée par JS -->
+        <div id="temps-dynamic-grid"></div>
         <div class="field"><label>Observations</label><textarea id="t-obs" placeholder="RAS — ou détails d'une anomalie..."></textarea></div>
         <button class="btn btn-blue" id="save-temps-btn" onclick="saveTemps()">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
@@ -661,9 +664,51 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       </div>
     </div>
 
-  </div>
+    <!-- CONFIG APPAREILS -->
+    <div class="page" id="page-config">
+      <button class="back-btn" onclick="goTo('temps')"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg> Retour</button>
+      <div class="section-label" style="margin-top:4px">Gestion des appareils de froid</div>
+      <div class="info-block">
+        <p>Ajoutez, renommez ou supprimez vos frigos et congélateurs. Les modifications s'appliquent immédiatement sur tous les supports connectés.</p>
+      </div>
 
-  <!-- NAV -->
+      <!-- Ajouter un appareil -->
+      <div class="card">
+        <div class="card-head">
+          <div class="card-icon icon-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+          <div><div class="card-title">Ajouter un appareil</div><div class="card-sub">Frigo, congélateur, bac spécial...</div></div>
+        </div>
+        <div class="grid2">
+          <div class="field" style="margin:0">
+            <label>Nom de l'appareil</label>
+            <input type="text" id="cfg-nom" placeholder="Ex: Frigo 3, Chambre froide...">
+          </div>
+          <div class="field" style="margin:0">
+            <label>Type</label>
+            <select id="cfg-type">
+              <option value="frigo">Réfrigérateur (-2°C → +4°C)</option>
+              <option value="legumes">Bac légumes (0°C → +6°C)</option>
+              <option value="congelateur">Congélateur (-25°C → -15°C)</option>
+              <option value="custom">Personnalisé</option>
+            </select>
+          </div>
+        </div>
+        <div id="cfg-custom-row" style="display:none" class="grid2">
+          <div class="field" style="margin:0"><label>T° min (°C)</label><input type="number" id="cfg-tmin" placeholder="-2"></div>
+          <div class="field" style="margin:0"><label>T° max (°C)</label><input type="number" id="cfg-tmax" placeholder="4"></div>
+        </div>
+        <button class="btn btn-blue" style="margin-top:10px" onclick="addAppareil()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Ajouter l'appareil
+        </button>
+      </div>
+
+      <!-- Liste des appareils -->
+      <div class="section-label">Appareils configurés</div>
+      <div id="cfg-list"><div class="empty-state">Chargement...</div></div>
+    </div>
+
+  </div>
   <nav class="nav">
     <button class="nav-btn active" id="nav-home" onclick="goTo('home')">
       <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
@@ -901,6 +946,7 @@ function initApp(){
   if(sel) sel.value = session;
   setSyncState('ok');
   refreshHome();
+  loadAppareils();
 }
 
 // Pré-remplir tous les champs prénom de l'appli et les bloquer
@@ -952,6 +998,155 @@ function resetChecks(prefix){
   });
 }
 
+// ── APPAREILS DYNAMIQUES ────────────────────────────────────────────────
+// Appareils par défaut
+const DEFAULT_APPAREILS = [
+  { id:'frigo1',   nom:'Frigo 1',       type:'frigo',       tmin:-2, tmax:4  },
+  { id:'frigo2',   nom:'Frigo 2',       type:'frigo',       tmin:-2, tmax:4  },
+  { id:'marinade', nom:'Bac marinade',  type:'frigo',       tmin:-2, tmax:4  },
+  { id:'legumes',  nom:'Légumes',       type:'legumes',     tmin:0,  tmax:6  },
+  { id:'cong1',    nom:'Congél. 1',     type:'congelateur', tmin:-25,tmax:-15 },
+  { id:'cong2',    nom:'Congél. 2',     type:'congelateur', tmin:-25,tmax:-15 },
+];
+
+const TYPE_META = {
+  frigo:       { icon:'❄️', label:'Réfrigérateur', defaultMin:-2,  defaultMax:4   },
+  legumes:     { icon:'🥬', label:'Bac légumes',   defaultMin:0,   defaultMax:6   },
+  congelateur: { icon:'🧊', label:'Congélateur',   defaultMin:-25, defaultMax:-15 },
+  custom:      { icon:'🌡', label:'Personnalisé',  defaultMin:-2,  defaultMax:4   },
+};
+
+let _appareils = []; // liste chargée depuis Firestore ou défaut
+
+async function loadAppareils() {
+  try {
+    const snap = await window._getDoc(window._doc('config', 'appareils'));
+    if (snap.exists() && snap.data().list && snap.data().list.length > 0) {
+      _appareils = snap.data().list;
+    } else {
+      _appareils = [...DEFAULT_APPAREILS];
+      await saveAppareils();
+    }
+  } catch(e) {
+    _appareils = [...DEFAULT_APPAREILS];
+  }
+  renderTempsGrid();
+  renderCfgList();
+}
+
+async function saveAppareils() {
+  try {
+    setSyncState('syncing');
+    await window._setDoc(window._doc('config', 'appareils'), { list: _appareils });
+    setSyncState('ok');
+  } catch(e) { setSyncState('offline'); }
+}
+
+// Génère la grille dynamique dans la page températures
+function renderTempsGrid() {
+  const container = document.getElementById('temps-dynamic-grid');
+  if (!container) return;
+
+  const frigos = _appareils.filter(a => a.type !== 'congelateur');
+  const congs  = _appareils.filter(a => a.type === 'congelateur');
+
+  let html = '';
+  if (frigos.length > 0) {
+    html += `<div class="section-label">Réfrigérateurs &amp; bacs froids</div><div class="temps-grid">`;
+    frigos.forEach(a => {
+      const rangeLabel = `${a.tmin} → +${a.tmax}°C`;
+      html += `<div class="temp-box" id="tb-${a.id}">
+        <label>${a.nom} (°C)</label>
+        <input type="number" id="tv-${a.id}" placeholder="—" oninput="chkT(this,'${a.id}',${a.tmin},${a.tmax})">
+        <div class="temp-status st-ok" id="ts-${a.id}">${rangeLabel}</div>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+  if (congs.length > 0) {
+    html += `<div class="section-label">Congélateurs</div><div class="temps-grid">`;
+    congs.forEach(a => {
+      const rangeLabel = `${a.tmin} → ${a.tmax}°C`;
+      html += `<div class="temp-box" id="tb-${a.id}">
+        <label>${a.nom} (°C)</label>
+        <input type="number" id="tv-${a.id}" placeholder="—" oninput="chkT(this,'${a.id}',${a.tmin},${a.tmax})">
+        <div class="temp-status st-ok" id="ts-${a.id}">${rangeLabel}</div>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+  container.innerHTML = html;
+  // Re-pré-remplir le prénom si connecté
+  fillPrenom(window._prenom || '');
+}
+
+// Affiche la liste de config avec bouton supprimer
+function renderCfgList() {
+  const el = document.getElementById('cfg-list');
+  if (!el) return;
+  if (_appareils.length === 0) { el.innerHTML = '<div class="empty-state">Aucun appareil configuré</div>'; return; }
+  el.innerHTML = _appareils.map((a, i) => {
+    const meta = TYPE_META[a.type] || TYPE_META.custom;
+    const range = a.type === 'congelateur' ? `${a.tmin}°C → ${a.tmax}°C` : `${a.tmin}°C → +${a.tmax}°C`;
+    return `<div class="appareil-item">
+      <div class="appareil-icon" style="background:${a.type==='congelateur'?'#E6F1FB':a.type==='legumes'?'#E1F5EE':'#E6F1FB'}">${meta.icon}</div>
+      <div class="appareil-body">
+        <div class="appareil-name">${a.nom}</div>
+        <div class="appareil-range">${meta.label} · Cible : ${range}</div>
+      </div>
+      <button class="appareil-del" onclick="delAppareil(${i})" title="Supprimer">
+        <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+      </button>
+    </div>`;
+  }).join('');
+}
+
+// Afficher/masquer les champs custom selon le type sélectionné
+document.addEventListener('change', e => {
+  if (e.target && e.target.id === 'cfg-type') {
+    document.getElementById('cfg-custom-row').style.display = e.target.value === 'custom' ? 'grid' : 'none';
+  }
+});
+
+async function addAppareil() {
+  const nom = document.getElementById('cfg-nom').value.trim();
+  const type = document.getElementById('cfg-type').value;
+  if (!nom) { showToast('Saisir un nom pour l\'appareil'); return; }
+
+  const meta = TYPE_META[type];
+  let tmin = meta.defaultMin, tmax = meta.defaultMax;
+  if (type === 'custom') {
+    tmin = parseFloat(document.getElementById('cfg-tmin').value);
+    tmax = parseFloat(document.getElementById('cfg-tmax').value);
+    if (isNaN(tmin) || isNaN(tmax)) { showToast('Saisir les températures min et max'); return; }
+  }
+
+  // Générer un ID unique
+  const id = 'app_' + Date.now();
+  _appareils.push({ id, nom, type, tmin, tmax });
+  await saveAppareils();
+  renderTempsGrid();
+  renderCfgList();
+
+  // Réinitialiser le formulaire
+  document.getElementById('cfg-nom').value = '';
+  document.getElementById('cfg-type').value = 'frigo';
+  document.getElementById('cfg-custom-row').style.display = 'none';
+  showToast(`✓ "${nom}" ajouté`);
+}
+window.addAppareil = addAppareil;
+
+async function delAppareil(idx) {
+  const nom = _appareils[idx].nom;
+  if (!confirm(`Supprimer "${nom}" ? Les enregistrements existants ne seront pas affectés.`)) return;
+  _appareils.splice(idx, 1);
+  await saveAppareils();
+  renderTempsGrid();
+  renderCfgList();
+  showToast(`"${nom}" supprimé`);
+}
+window.delAppareil = delAppareil;
+
 // ── TEMPÉRATURES ────────────────────────────────────────────────────────
 const tBounds = {};
 function chkT(inp, name, min, max){
@@ -968,17 +1163,19 @@ window.chkT = chkT;
 async function saveTemps(){
   const btn = document.getElementById('save-temps-btn');
   btn.disabled=true; btn.textContent='Enregistrement...';
-  const hasNC = Object.values(tBounds).includes('nc');
+  const releves = {};
+  let hasNC = false;
+  _appareils.forEach(a => {
+    const val = document.getElementById('tv-'+a.id)?.value;
+    releves[a.id] = val !== '' && val != null ? parseFloat(val) : null;
+    if(tBounds[a.id] === 'nc') hasNC = true;
+  });
   const rec = {
     type:'temps', date:TODAY, time:timeNow(), uid:window._uid,
     session: document.getElementById('t-session').value,
     agent: document.getElementById('t-agent').value || 'N/A',
-    frigo1: document.getElementById('tv-frigo1').value || null,
-    frigo2: document.getElementById('tv-frigo2').value || null,
-    marinade: document.getElementById('tv-marinade').value || null,
-    legumes: document.getElementById('tv-legumes').value || null,
-    cong1: document.getElementById('tv-cong1').value || null,
-    cong2: document.getElementById('tv-cong2').value || null,
+    releves,
+    appareils: _appareils.map(a=>({ id:a.id, nom:a.nom, tmin:a.tmin, tmax:a.tmax })),
     obs: document.getElementById('t-obs').value || '',
     hasNC, ts: window._serverTS()
   };
@@ -988,13 +1185,16 @@ async function saveTemps(){
     setSyncState('ok');
     showToast('✓ Relevé enregistré et synchronisé');
     if(hasNC) setTimeout(()=>showToast('⚠ Anomalie détectée — créer une non-conformité',3500),3000);
-    ['frigo1','frigo2','marinade','legumes','cong1','cong2'].forEach(n => {
-      document.getElementById('tv-'+n).value='';
-      document.getElementById('tb-'+n).className='temp-box';
+    _appareils.forEach(a => {
+      const el = document.getElementById('tv-'+a.id);
+      if(el) el.value='';
+      const box = document.getElementById('tb-'+a.id);
+      if(box) box.className='temp-box';
     });
+    Object.keys(tBounds).forEach(k=>delete tBounds[k]);
     document.getElementById('t-obs').value='';
     goTo('home');
-  } catch(e){ setSyncState('offline'); showToast('⚠ Sauvegardé en local (hors ligne)'); goTo('home'); }
+  } catch(e){ setSyncState('offline'); showToast('⚠ Sauvegardé en local'); goTo('home'); }
   finally{ btn.disabled=false; btn.textContent='Enregistrer le relevé'; }
 }
 window.saveTemps = saveTemps;
