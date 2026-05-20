@@ -1105,16 +1105,11 @@ function resetChecks(prefix){
 }
 
 // ── ADMIN / RÔLES ───────────────────────────────────────────────────────
-// ─── IMPORTANT : remplace par ton email Firebase exact si ça ne fonctionne pas ───
-const ADMIN_EMAIL = 'thomas'; // cherche si l'email contient ce mot
-
+// ─── Admin détecté via le rôle Firestore (role:'admin') ───
 function isAdmin() {
-  const email = (window._userEmail || '').toLowerCase();
-  const match = email.includes(ADMIN_EMAIL);
-  // Debug : affiche dans la console pour vérifier
-  console.log('[ADMIN CHECK] email:', email, '→ isAdmin:', match);
-  return match;
+  return window._userRole === 'admin';
 }
+
 
 function isManager() {
   return window._userRole === 'manager' || isAdmin();
