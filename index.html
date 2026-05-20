@@ -1160,19 +1160,36 @@ async function loadEmpList() {
       const u = d.data();
       const uid = d.id;
       const role = u.role || 'employe';
-      const isThomas = (u.email||'').toLowerCase().includes('thomas');
-      if(isThomas) return `<div class="emp-item">
+      const isSelf = uid === window._uid;
+      const isAdminUser = role === 'admin';
+
+      // Sa propre ligne ou un autre admin → pas de bouton
+      if(isSelf) return `<div class="emp-item">
         <div class="emp-avatar">${(u.prenom||'?')[0]}</div>
-        <div class="emp-body"><div class="emp-name">${u.prenom||'—'} <span style="font-size:10px">👑</span></div><div class="emp-role">Gérant / Administrateur</div></div>
+        <div class="emp-body">
+          <div class="emp-name">${u.prenom||'—'} <span style="font-size:10px">👑</span></div>
+          <div class="emp-role">Administrateur — vous-même</div>
+        </div>
+        <span class="status-pill pill-ok" style="font-size:11px">Admin</span>
       </div>`;
+
+      if(isAdminUser) return `<div class="emp-item">
+        <div class="emp-avatar">${(u.prenom||'?')[0]}</div>
+        <div class="emp-body">
+          <div class="emp-name">${u.prenom||'—'} <span style="font-size:10px">👑</span></div>
+          <div class="emp-role">Administrateur</div>
+        </div>
+        <span class="status-pill pill-ok" style="font-size:11px">Admin</span>
+      </div>`;
+
       return `<div class="emp-item">
         <div class="emp-avatar">${(u.prenom||'?')[0]}</div>
         <div class="emp-body">
           <div class="emp-name">${u.prenom||'—'}</div>
-          <div class="emp-role">${role==='manager'?'👔 Manager (peut gérer les appareils)':'👤 Employé'}</div>
+          <div class="emp-role">${role==='manager'?'👔 Manager':'👤 Employé'}</div>
         </div>
         <button class="role-toggle" onclick="toggleRole('${uid}','${role}','${u.prenom||''}')">
-          ${role==='manager'?'Rétrograder':'Promouvoir'}
+          ${role==='manager'?'Rétrograder':'→ Manager'}
         </button>
       </div>`;
     }).join('');
@@ -1180,8 +1197,11 @@ async function loadEmpList() {
 }
 
 async function toggleRole(uid, currentRole, prenom) {
+  // Double sécurité — jamais toucher à un admin ni à soi-même
+  if(uid === window._uid) { showToast('Impossible de modifier votre propre rôle'); return; }
+  if(currentRole === 'admin') { showToast('Impossible de modifier un administrateur'); return; }
   const newRole = currentRole === 'manager' ? 'employe' : 'manager';
-  const label = newRole === 'manager' ? `Promouvoir ${prenom} Manager ?` : `Rétrograder ${prenom} en Employé ?`;
+  const label = newRole === 'manager' ? `Promouvoir ${prenom} en Manager ?` : `Rétrograder ${prenom} en Employé ?`;
   if(!confirm(label)) return;
   try {
     await window._setDoc(window._doc('users', uid), { role: newRole }, { merge: true });
